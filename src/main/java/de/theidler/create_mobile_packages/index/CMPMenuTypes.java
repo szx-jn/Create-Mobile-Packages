@@ -8,6 +8,8 @@ import de.theidler.create_mobile_packages.blocks.bee_port.BeePortScreen;
 import de.theidler.create_mobile_packages.items.mobile_packager.*;
 import de.theidler.create_mobile_packages.items.portable_stock_ticker.PortableStockTickerMenu;
 import de.theidler.create_mobile_packages.items.portable_stock_ticker.PortableStockTickerScreen;
+import de.theidler.create_mobile_packages.items.portable_stock_ticker.trash_menu.TrashMenu;
+import de.theidler.create_mobile_packages.items.portable_stock_ticker.trash_menu.TrashScreen;
 import net.minecraft.world.item.ItemStack;
 
 public class CMPMenuTypes {
@@ -38,6 +40,14 @@ public class CMPMenuTypes {
                     "mobile_packager_edit_menu",
                     MobilePackagerEditMenu::new,
                     () -> MobilePackagerEditScreen::new
+            ).register();
+
+    public static final MenuEntry<TrashMenu> TRASH_MENU =
+            CreateMobilePackages.REGISTRATE.menu(
+                    "trash_menu",
+                    (menuType, containerId, playerInventory) -> new TrashMenu(containerId, playerInventory,
+                            (de.theidler.create_mobile_packages.items.portable_stock_ticker.PortableStockTicker) playerInventory.player.getMainHandItem().getItem()),
+                    () -> TrashScreen::new
             ).register();
 
     public static void register() {

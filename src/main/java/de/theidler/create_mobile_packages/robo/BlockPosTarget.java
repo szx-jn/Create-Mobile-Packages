@@ -1,7 +1,9 @@
 package de.theidler.create_mobile_packages.robo;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 public class BlockPosTarget implements RoboTarget {
     private final BlockPos pos;
@@ -14,6 +16,11 @@ public class BlockPosTarget implements RoboTarget {
     @Override
     public Vec3 getTargetPos() {
         return Vec3.atCenterOf(pos);
+    }
+
+    @Override
+    public @Nullable ServerLevel getTargetLevel() {
+        return null;
     }
 
     @Override

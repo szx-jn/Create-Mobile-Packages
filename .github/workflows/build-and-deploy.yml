@@ -1,10 +1,12 @@
-name: Build and Deploy
+name: Build and Release
 
 on:
   push:
     branches:
       - 'mc1.20.1/main'
       - '**'
+    tags:
+      - '1.20.1-*-dimensionworks.*'
   pull_request:
     branches:
       - '**'
@@ -40,13 +42,12 @@ jobs:
           path: '**/build/libs/*.jar'
           retention-days: 30
   
-  publish:
+  release:
     needs: build
     runs-on: ubuntu-latest
-    if: endsWith(github.ref, '/main') && github.event_name == 'push'
+    if: startsWith(github.ref, 'refs/tags/1.20.1-') && contains(github.ref_name, '-dimensionworks.')
     permissions:
       contents: write
-      packages: read
 
     steps:
       - name: Checkout repository
@@ -65,9 +66,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Publish to CurseForge, Modrinth & GitHub
+      - name: Create GitHub Release
         env:
-          CURSEFORGE_API_TOKEN: ${{ secrets.CURSEFORGE_API_TOKEN }}
-          MODRINTH_API_TOKEN: ${{ secrets.MODRINTH_API_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew publishMod
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "$GITHUB_REF_NAME" build/libs/*.jar --verify-tag --title "$GITHUB_REF_NAME" --generate-notes

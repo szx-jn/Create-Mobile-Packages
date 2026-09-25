@@ -17,7 +17,8 @@ public enum CMPGuiTextures implements ScreenElement, TextureSheetSegment {
     PLAYER_NETWORKS_EDIT_NAME("player_networks", 230, 3, 13, 13),
     PLAYER_NETWORKS_BG("player_networks", 2, 36, 210, 22),
     PLAYER_NETWORKS_FOOTER("player_networks", 2, 73, 218, 31),
-    PLAYER_NETWORKS_SLOT("player_networks", 2, 113, 210, 18)
+    PLAYER_NETWORKS_SLOT("player_networks", 2, 113, 210, 18),
+    TRASH_MENU("trash_menu", 0, 0, 256, 95)
 
     ;
 
@@ -38,7 +39,7 @@ public enum CMPGuiTextures implements ScreenElement, TextureSheetSegment {
     }
 
     CMPGuiTextures(String namespace, String location, int startX, int startY, int width, int height) {
-        this.location = ResourceLocation.fromNamespaceAndPath(namespace, "textures/gui/" + location + ".png");
+        this.location = new ResourceLocation(namespace, "textures/gui/" + location + ".png");
         this.width = width;
         this.height = height;
         this.startX = startX;
@@ -68,7 +69,6 @@ public enum CMPGuiTextures implements ScreenElement, TextureSheetSegment {
     @OnlyIn(Dist.CLIENT)
     public void render(@NotNull GuiGraphics graphics, int x, int y) {
         graphics.blit(location, x, y, startX, startY, width, height);
-
     }
 
     @OnlyIn(Dist.CLIENT)

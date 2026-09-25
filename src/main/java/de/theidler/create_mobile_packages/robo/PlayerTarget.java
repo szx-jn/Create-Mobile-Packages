@@ -2,11 +2,14 @@ package de.theidler.create_mobile_packages.robo;
 
 import com.simibubi.create.content.logistics.box.PackageItem;
 import de.theidler.create_mobile_packages.IExtendedLogisticsNetwork;
+import de.theidler.create_mobile_packages.blocks.bee_port.RoboRequest;
 import de.theidler.create_mobile_packages.index.CMPItems;
-import de.theidler.create_mobile_packages.index.CMPPackets;
 import de.theidler.create_mobile_packages.network_settings.NetworkHelper;
 import de.theidler.create_mobile_packages.toast.ShowToastOnClientPacket;
+import de.theidler.create_mobile_packages.toast.Toast;
 import de.theidler.create_mobile_packages.toast.types.PackageToast;
+import de.theidler.create_mobile_packages.toast.types.SimpleToast;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,19 +30,38 @@ public class PlayerTarget implements RoboTarget {
     private final Player player;
     private int eta;
     private final IExtendedLogisticsNetwork network;
+    private final UUID networkId;
     private long lastToastUpdate = 0;
 
     public PlayerTarget(Player player, UUID networkId) {
         this.player = player;
         this.network = NetworkHelper.getExtendedLogisticsNetwork(networkId);
+        this.networkId = networkId;
     }
 
     public static @Nullable PlayerTarget fromAddress(ServerLevel level, String address, UUID networkId) {
         IExtendedLogisticsNetwork network = NetworkHelper.getExtendedLogisticsNetwork(networkId);
         if (network == null) return null;
-        ServerPlayer player = level.getPlayers((p) -> doesAddressMatchPlayer(p, address)).stream().filter(p -> network.create_mobile_packages$getPlayers().contains(p.getUUID())).findFirst().orElse(null);
-        if (player == null) return null;
-        return new PlayerTarget(player, networkId);
+        // search the current dimension first, then all other dimensions,
+        // so a player can receive packages no matter which dimension they are in
+        ServerPlayer found = findPlayerInLevel(level, address, networkId);
+        if (found == null) {
+            for (ServerLevel otherLevel : level.getServer().getAllLevels()) {
+                if (otherLevel == level) continue;
+                found = findPlayerInLevel(otherLevel, address, networkId);
+                if (found != null) break;
+            }
+        }
+        if (found == null) return null;
+        return new PlayerTarget(found, networkId);
+    }
+
+    private static ServerPlayer findPlayerInLevel(ServerLevel level, String address, UUID networkId) {
+        IExtendedLogisticsNetwork network = NetworkHelper.getExtendedLogisticsNetwork(networkId);
+        if (network == null) return null;
+        return level.getPlayers((p) -> doesAddressMatchPlayer(p, address)).stream()
+                .filter(p -> network.create_mobile_packages$getPlayers().contains(p.getUUID()))
+                .findFirst().orElse(null);
     }
 
     @Override
@@ -49,12 +71,17 @@ public class PlayerTarget implements RoboTarget {
     }
 
     @Override
+    public @Nullable ServerLevel getTargetLevel() {
+        return player != null && player.level() instanceof ServerLevel serverLevel ? serverLevel : null;
+    }
+
+    @Override
     public Player asPlayer() {
         return player;
     }
 
     @Override
-    public boolean isValid() {
+    public boolean isValid(VirtualRobo robo) {
         return player != null && player.isAlive() && network != null && network.create_mobile_packages$getPlayers().contains(player.getUUID());
     }
 
@@ -68,15 +95,32 @@ public class PlayerTarget implements RoboTarget {
             items.add(itemHandler.getStackInSlot(i));
         }
 
-        PackageToast toast = new PackageToast(
-                robo.getId(),
-                Component.translatable("create_mobile_packages.toast.robo_bee_on_the_way"),
-                Component.translatable("create_mobile_packages.toast.eta", getETA()),
-                CMPItems.ROBO_BEE.asStack(),
-                items
-        );
-        if (player instanceof ServerPlayer serverPlayer)
-            CMPPackets.getChannel().send(PacketDistributor.PLAYER.with(()-> serverPlayer), new ShowToastOnClientPacket(toast));
+        Toast toast = null;
+
+        RoboRequest.Mission missionType = robo.getRequest() != null ? robo.getRequest().getMission() : RoboRequest.Mission.DELIVER;
+        switch (missionType) {
+            case DELIVER: toast = new PackageToast(
+                    robo.getId(),
+                    Component.translatable("create_mobile_packages.toast.robo_bee_on_the_way"),
+                    Component.translatable("create_mobile_packages.toast.eta", getETA()),
+                    CMPItems.ROBO_BEE.asStack(),
+                    items
+            );
+            break;
+            case PICKUP: toast = new SimpleToast(
+                    robo.getId(),
+                    Component.translatable("create_mobile_packages.toast.robo_bee_on_the_way"),
+                    Component.translatable("create_mobile_packages.toast.eta", getETA()),
+                    CMPItems.ROBO_BEE.asStack()
+            );
+            break;
+            default: break;
+        }
+
+        if (player instanceof ServerPlayer serverPlayer && toast != null) {
+            de.theidler.create_mobile_packages.index.CMPPackets.getChannel().send(
+                    PacketDistributor.PLAYER.with(() -> serverPlayer), new ShowToastOnClientPacket(toast));
+        }
         lastToastUpdate = System.currentTimeMillis();
     }
 

@@ -1,20 +1,30 @@
 package de.theidler.create_mobile_packages.entities.robo_entity;
 
 import com.simibubi.create.content.logistics.box.PackageItem;
+import de.theidler.create_mobile_packages.CMPHelper;
 import de.theidler.create_mobile_packages.blocks.bee_port.BeePortBlockEntity;
 import de.theidler.create_mobile_packages.blocks.bee_port.RoboRequest;
+import de.theidler.create_mobile_packages.items.portable_stock_ticker.trash_menu.SyncTrashItemsToClientPacket;
+import de.theidler.create_mobile_packages.items.portable_stock_ticker.trash_menu.TrashMenu;
 import de.theidler.create_mobile_packages.robo.PlayerTarget;
+import de.theidler.create_mobile_packages.robo.RoboManager;
+import de.theidler.create_mobile_packages.robo.RoboTrashStore;
 import de.theidler.create_mobile_packages.robo.VirtualRobo;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 
-import static de.theidler.create_mobile_packages.CMPHelper.calcETA;
+import java.util.List;
 
 public class RoboBeeBehaviorController {
     private RoboBeeState state = RoboBeeState.IDLE;
     private boolean init = true;
+    private @Nullable BeePortBlockEntity lastLandedPort;
 
     public void tick(VirtualRobo robo) {
         switch (state) {
@@ -36,42 +46,97 @@ public class RoboBeeBehaviorController {
             case DELIVER_PACKAGE:
                 handleDeliverPackage(robo);
                 break;
+            case PICKUP_PACKAGE:
+                handlePickupPackage(robo);
+                break;
             case SHUTDOWN:
                 handleShutdown(robo);
                 break;
         }
     }
 
+    private void handlePickupPackage(VirtualRobo robo) {
+        boolean pickedUp = false;
+        if (robo.getTarget() != null && robo.getTarget().asPlayer() != null) {
+            pickedUp = pickupPackageFromPlayer(robo.getTarget().asPlayer(), robo);
+        }
+
+        if (pickedUp) {
+            robo.clearRequest();
+            if (robo.getItemStack() != null && !robo.getItemStack().isEmpty()) {
+                robo.setTargetAddress(PackageItem.getAddress(robo.getItemStack()), true);
+            }
+            setState(RoboBeeState.IDLE);
+        }
+    }
+
+    private boolean pickupPackageFromPlayer(Player player, VirtualRobo robo) {
+        RoboManager manager = RoboManager.get(robo.getServerLevel());
+        RoboTrashStore trashStore = manager.getTrashStore(robo.getLogisticsNetworkId(), player.getUUID());
+        if (trashStore == null || !trashStore.hasItems()) {
+            return true;
+        }
+        String targetAddress = trashStore.getTargetAddress();
+
+        List<ItemStack> takenItems = manager.takeTrashItems(robo.getLogisticsNetworkId(), player.getUUID());
+        if (takenItems == null) {
+            return true;
+        }
+
+        ServerPlayer serverPlayer = robo.getServerLevel().getServer().getPlayerList().getPlayer(player.getUUID());
+        if (serverPlayer != null) {
+            if (serverPlayer.containerMenu instanceof TrashMenu trashMenu) {
+                trashMenu.markAsPickedUpByRobo();
+            }
+            de.theidler.create_mobile_packages.index.CMPPackets.getChannel().send(
+                    PacketDistributor.PLAYER.with(() -> serverPlayer), new SyncTrashItemsToClientPacket(List.of()));
+        }
+
+        ItemStack packageItem = PackageItem.containing(takenItems);
+        if (packageItem.isEmpty()) {
+            return false;
+        }
+
+        PackageItem.addAddress(packageItem, targetAddress);
+        robo.setItemStack(packageItem);
+        return true;
+    }
+
     private void handleIdle(VirtualRobo robo) {
         robo.setTargetVelocity(Vec3.ZERO);
-        if (robo.getTarget() != null && robo.getTarget().isValid()) {
+        if (robo.getTarget() != null && robo.getTarget().isValid(robo)) {
             setState(RoboBeeState.TAKEOFF);
         }
     }
 
     private void handleTakeoff(VirtualRobo robo) {
+        BeePortBlockEntity startPort = robo.getStartBeePortBlockEntity();
         if (init) {
-            openPort(robo.getStartBeePortBlockEntity(), true);
+            lastLandedPort = null;
+            openPort(startPort, true);
             init = false;
         }
-        if (robo.getStartBeePortBlockEntity() == null) {
+        if (startPort == null) {
+            // Bees spawned from moving contraptions can fail to re-locate the origin
+            robo.setPackageHeightScale(1.0f);
             setState(RoboBeeState.NAVIGATE_TO_TARGET);
             return;
         }
-        Vec3 mid = getAbove(robo.getStartBeePortBlockEntity(), 1.6);
-        Vec3 end = getAbove(robo.getStartBeePortBlockEntity(), 2);
+        Vec3 mid = getAbove(startPort, 1.6);
+        Vec3 end = getAbove(startPort, 2);
 
         double y = robo.getCurrentPos().y;
-        double speed = (robo.getSpeed() / 20.0) / 2; // Takeoff slower
+        double speed = robo.getTravelSpeedPerTick() / 2.0; // Takeoff slower
         if (y < mid.y - speed) {
-            moveAndScale(robo, mid, speed, 0, 1); // 1st part with scaling package
+            moveAndScale(robo, mid, speed, 0, 1);
         } else if (y < end.y - speed) {
-            moveTo(robo, end, speed); // 2nd part without scaling package
+            moveTo(robo, end, speed);
             robo.setPackageHeightScale(1.0f);
         } else {
             robo.setPos(end);
             robo.setTargetVelocity(Vec3.ZERO);
-            openPort(robo.getStartBeePortBlockEntity(), false);
+            openPort(startPort, false);
+            robo.startTransport();
             setState(RoboBeeState.NAVIGATE_TO_TARGET);
         }
     }
@@ -82,17 +147,18 @@ public class RoboBeeBehaviorController {
             return;
         }
         if (robo.getTarget() != null) {
-            robo.getTarget().setETA(calcETA(robo.getTargetPosition(), robo.getCurrentPos()));
+            robo.getTarget().setETA(CMPHelper.calcETA(robo.getTargetPosition(), robo.getCurrentPos()));
             if (robo.getTarget() instanceof PlayerTarget playerTarget)
                 playerTarget.updateEtaToast(robo);
         }
         Vec3 target = getAbove(robo.getTargetPosition(), 2);
-        double speed = robo.getSpeed() / 20.0;
+        double speed = robo.getTravelSpeedPerTick();
         moveTo(robo, target, speed);
         if (isAtTarget(robo, target, speed)) {
             if (robo.getTarget() != null) {
-                robo.getTarget().setETA(0); // set ETA to 0 as the bee arrived
+                robo.getTarget().setETA(0);
             }
+            robo.stopTransport();
             setState(RoboBeeState.ALIGN_FOR_DELIVERY);
             robo.setTargetVelocity(Vec3.ZERO);
         }
@@ -109,34 +175,38 @@ public class RoboBeeBehaviorController {
     }
 
     private void handleLand(VirtualRobo robo) {
-        if (robo.getTarget() != null && robo.getTarget().asBeePortBlockEntity() == null) {
+        BeePortBlockEntity targetPort = robo.getTarget() != null ? robo.getTarget().asBeePortBlockEntity() : null;
+        if (targetPort == null) {
+            lastLandedPort = null;
             setState(RoboBeeState.DELIVER_PACKAGE);
             return;
         }
-        Vec3 end = getBelow(robo.getTarget() != null ? robo.getTarget().asBeePortBlockEntity() : null, 0.5);
-        Vec3 mid = getAbove(robo.getTarget().asBeePortBlockEntity(), 1);
-        Vec3 start = getAbove(robo.getTarget().asBeePortBlockEntity(), 2);
+        Vec3 end = getBelow(targetPort, 0.5);
+        Vec3 mid = getAbove(targetPort, 1);
+        Vec3 start = getAbove(targetPort, 2);
         if (init) {
             robo.setPos(start);
             robo.setPackageHeightScale(1.0f);
             init = false;
         }
         double y = robo.getCurrentPos().y;
-        double speed = (robo.getSpeed() / 20.0) / 2; // landing slower
+        double speed = robo.getTravelSpeedPerTick() / 2.0; // landing slower
         if (y > mid.y + speed) {
-            moveTo(robo, mid, speed); // 1st part without scaling package
+            moveTo(robo, mid, speed);
             robo.setPackageHeightScale(1.0f);
         } else if (y > end.y + speed) {
-            moveAndScale(robo, end, speed, 1, 0); // 2nd part with scaling package
+            moveAndScale(robo, end, speed, 1, 0);
         } else {
             robo.setPos(end);
             robo.setTargetVelocity(Vec3.ZERO);
-            openPort(robo.getTarget().asBeePortBlockEntity(), false);
+            lastLandedPort = targetPort;
+            openPort(targetPort, false);
             setState(RoboBeeState.DELIVER_PACKAGE);
         }
     }
 
     private void handleDeliverPackage(VirtualRobo robo) {
+        BeePortBlockEntity landedPort = lastLandedPort;
         boolean delivered = false;
         // Try to deliver to player
         if (robo.getTarget() != null && robo.getTarget().asPlayer() != null && !robo.getItemStack().isEmpty()) {
@@ -158,9 +228,14 @@ public class RoboBeeBehaviorController {
         // updating target Address with update -> creates new target if target was null
         robo.setTargetAddress(PackageItem.getAddress(robo.getItemStack()), true);
 
-        // if the new taget is a Bee Port and the Robo is in it then shutdown the Robo.
+        // if the new target is a Bee Port and the Robo is in it then shutdown the Robo.
         if (robo.getTarget() != null && robo.getTarget().asBeePortBlockEntity() != null) {
-            if (BlockPos.containing(robo.getCurrentPos()).equals(BlockPos.containing(robo.getTargetPosition()))) {
+            BeePortBlockEntity targetPort = robo.getTarget().asBeePortBlockEntity();
+            boolean alreadyLandedAtTarget = landedPort != null && targetPort != null
+                    && landedPort.getLevel() == targetPort.getLevel()
+                    && landedPort.getBlockPos().equals(targetPort.getBlockPos());
+            if (alreadyLandedAtTarget
+                    || BlockPos.containing(robo.getCurrentPos()).equals(BlockPos.containing(robo.getTargetPosition()))) {
                 setState(RoboBeeState.SHUTDOWN);
                 return;
             }
@@ -170,8 +245,17 @@ public class RoboBeeBehaviorController {
     }
 
     private void handleShutdown(VirtualRobo robo) {
-        if (robo.getServerLevel().getBlockEntity(BlockPos.containing(robo.getCurrentPos())) instanceof BeePortBlockEntity bpbe)
-            bpbe.addBeeToRoboBeeInventory(1);
+        BeePortBlockEntity shutdownPort = null;
+        if (robo.getServerLevel().getBlockEntity(BlockPos.containing(robo.getCurrentPos())) instanceof BeePortBlockEntity bpbe) {
+            shutdownPort = bpbe;
+        } else if (lastLandedPort != null && !lastLandedPort.isRemoved()) {
+            shutdownPort = lastLandedPort;
+        } else if (robo.getTarget() != null) {
+            shutdownPort = robo.getTarget().asBeePortBlockEntity();
+        }
+        if (shutdownPort != null) {
+            shutdownPort.addBeeToRoboBeeInventory(1);
+        }
         if (robo.getRequest() != null) {
             robo.getRequest().setStatus(RoboRequest.Status.DONE);
         }
@@ -187,9 +271,9 @@ public class RoboBeeBehaviorController {
 
     private Vec3 getAbove(Object blockEntityOrPos, double y) {
         if (blockEntityOrPos instanceof BlockPos pos) {
-            return pos.getCenter().add(0, y, 0);
+            return Vec3.atCenterOf(pos).add(0, y, 0);
         } else if (blockEntityOrPos instanceof BlockEntity blockEntity) {
-            return blockEntity.getBlockPos().getCenter().add(0, y, 0);
+            return CMPHelper.getGlobalCenter(blockEntity.getLevel(), blockEntity.getBlockPos()).add(0, y, 0);
         } else if (blockEntityOrPos instanceof Vec3 vec) {
             return vec.add(0, y, 0);
         }
@@ -198,9 +282,9 @@ public class RoboBeeBehaviorController {
 
     private Vec3 getBelow(Object blockEntityOrPos, double y) {
         if (blockEntityOrPos instanceof BlockPos pos) {
-            return pos.getCenter().subtract(0, y, 0);
+            return Vec3.atCenterOf(pos).subtract(0, y, 0);
         } else if (blockEntityOrPos instanceof BlockEntity blockEntity) {
-            return blockEntity.getBlockPos().getCenter().subtract(0, y, 0);
+            return CMPHelper.getGlobalCenter(blockEntity.getLevel(), blockEntity.getBlockPos()).subtract(0, y, 0);
         } else if (blockEntityOrPos instanceof Vec3 vec) {
             return vec.subtract(0, y, 0);
         }
@@ -217,7 +301,6 @@ public class RoboBeeBehaviorController {
             dir = dir.normalize();
             robo.setTargetVelocity(dir.scale(speed));
         }
-        // look at the target
         robo.setYaw((float) (Math.toDegrees(Math.atan2(-dir.x, dir.z))));
         robo.setPitch((float) (Math.toDegrees(Math.asin(dir.y))));
     }
@@ -239,5 +322,12 @@ public class RoboBeeBehaviorController {
     public void setState(RoboBeeState newState) {
         this.state = newState;
         this.init = true;
+    }
+
+    public boolean isTransporting() {
+        return state == RoboBeeState.TAKEOFF
+                || state == RoboBeeState.NAVIGATE_TO_TARGET
+                || state == RoboBeeState.ALIGN_FOR_DELIVERY
+                || state == RoboBeeState.LAND;
     }
 }

@@ -1,9 +1,11 @@
 package de.theidler.create_mobile_packages.robo;
 
+import de.theidler.create_mobile_packages.CMPHelper;
 import de.theidler.create_mobile_packages.blocks.bee_port.BeePortBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 public class BeePortBlockEntityTarget implements RoboTarget {
     private final BlockPos pos;
@@ -17,21 +19,28 @@ public class BeePortBlockEntityTarget implements RoboTarget {
 
     @Override
     public Vec3 getTargetPos() {
-        return Vec3.atCenterOf(pos);
+        return CMPHelper.getGlobalCenter(level, pos);
     }
 
     @Override
-    public BeePortBlockEntity asBeePortBlockEntity() {
-        // Lazy lookup to avoid holding onto a removed/invalid instance
+    public @Nullable ServerLevel getTargetLevel() {
+        return level;
+    }
+
+    @Override
+    public @Nullable BeePortBlockEntity asBeePortBlockEntity() {
         if (level == null) return null;
+        if (!level.hasChunk(pos.getX() >> 4, pos.getZ() >> 4)) return null;
         if (level.getBlockEntity(pos) instanceof BeePortBlockEntity be) return be;
         return null;
     }
 
     @Override
-    public boolean isValid() {
+    public boolean isValid(VirtualRobo robo) {
         BeePortBlockEntity be = asBeePortBlockEntity();
-        return be != null && !be.isRemoved() && !be.isFull();
+        boolean doesBeePortExists = be != null && !be.isRemoved();
+        boolean hasItemStack = robo != null && !robo.getItemStack().isEmpty();
+        return doesBeePortExists && (hasItemStack ? be.canAcceptEntity(robo, true) : be.canAcceptEntity(robo, false));
     }
 
     @Override

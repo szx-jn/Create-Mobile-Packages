@@ -1,7 +1,7 @@
 package de.theidler.create_mobile_packages.entities.robo_entity;
 
-import com.simibubi.create.Create;
 import de.theidler.create_mobile_packages.IExtendedLogisticsNetwork;
+import de.theidler.create_mobile_packages.blocks.bee_port.BeePortBlockEntity;
 import de.theidler.create_mobile_packages.index.CMPItems;
 import de.theidler.create_mobile_packages.index.config.CMPConfigs;
 import de.theidler.create_mobile_packages.network_settings.NetworkHelper;
@@ -33,12 +33,6 @@ public class RoboEntity extends Mob {
 
     public UUID linkedId;
 
-    /**
-     * Constructor for RoboEntity. Used for spawning the entity.
-     *
-     * @param type  The entity type.
-     * @param level The level in which the entity exists.
-     */
     public RoboEntity(EntityType<? extends Mob> type, Level level, UUID linkedId) {
         super(type, level);
         this.linkedId = linkedId;
@@ -95,8 +89,14 @@ public class RoboEntity extends Mob {
             setCustomName(Component.literal("-> " + virtualRobo.getTargetAddress()));
             setCustomNameVisible(true);
         } else if (virtualRobo.getTarget() != null && virtualRobo.getTarget().asBeePortBlockEntity() != null) {
-            BlockPos pos = virtualRobo.getTarget().asBeePortBlockEntity().getBlockPos();
-            setCustomName(Component.literal("-> [" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "]"));
+            BeePortBlockEntity port = virtualRobo.getTarget().asBeePortBlockEntity();
+            BlockPos pos = port.getBlockPos();
+            String portName = !port.addressFilter.isBlank() ? port.addressFilter
+                    : "[" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "]";
+            setCustomName(Component.literal("-> " + portName));
+            setCustomNameVisible(true);
+        } else if (virtualRobo.getTarget() != null && virtualRobo.getTarget().asPlayer() != null) {
+            setCustomName(Component.literal("-> " + virtualRobo.getTarget().asPlayer().getName().getString()));
             setCustomNameVisible(true);
         } else {
             setCustomName(Component.translatable("entity.create_mobile_packages.robo_bee.no_valid_target"));
@@ -114,15 +114,13 @@ public class RoboEntity extends Mob {
 
     @Override
     public boolean hurt(@NotNull DamageSource pSource, float pAmount) {
-        // if hit by a player, pick it up
         if (pSource.getEntity() instanceof Player player) {
             if (level() instanceof ServerLevel serverLevel) {
                 VirtualRobo virtualRobo = RoboManager.get(serverLevel).get(linkedId);
                 if (virtualRobo != null) {
-                    // check if the player is part of the network
                     IExtendedLogisticsNetwork network = NetworkHelper.getExtendedLogisticsNetwork(virtualRobo.getLogisticsNetworkId());
                     if (network != null && !network.create_mobile_packages$getPlayers().contains(player.getUUID())) {
-                        return false; // player is not allowed to pick up the robo
+                        return false;
                     }
 
                     ItemStack stack = virtualRobo.getItemStack();
@@ -138,7 +136,7 @@ public class RoboEntity extends Mob {
             }
             return true;
         }
-        return false; // RoboEntity cannot be damaged.
+        return false;
     }
 
     @Override

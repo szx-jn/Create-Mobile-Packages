@@ -54,7 +54,7 @@ public class CreateMobilePackages
         CMPMenuTypes.register();
         CMPPackets.registerPackets();
         CMPConfigs.register(modLoadingContext);
-        CMPEntities.register();
+        CMPEntities.register(modEventBus);
         CMPDisplaySources.register();
         CMPToasts.registerAll();
 

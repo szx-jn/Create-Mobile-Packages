@@ -2,8 +2,6 @@ package de.theidler.create_mobile_packages.entities;
 
 import de.theidler.create_mobile_packages.entities.robo_entity.RoboEntity;
 import de.theidler.create_mobile_packages.robo.RoboManager;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -22,25 +20,10 @@ public class RoboBeeEntity extends RoboEntity {
         this.setNoGravity(true);
         this.noPhysics = true;
         this.setNoAi(true);
-        this.setPersistenceRequired();
     }
 
-    // No AI goals; movement is entirely controlled via tick().
     @Override
     protected void registerGoals() {
-    }
-
-    public static RoboBeeEntity createEmpty(EntityType<? extends Mob> type, Level level) {
-        UUID linkedId = null;
-        if (level instanceof ServerLevel serverLevel) {
-            linkedId = RoboManager.get(serverLevel).newRobo(serverLevel, ItemStack.EMPTY, BlockPos.ZERO, UUID.randomUUID(), 0, null);
-        }
-        return new RoboBeeEntity(type, level, linkedId);
-    }
-
-    @Override
-    public boolean canBeCollidedWith() {
-        return false;
     }
 
     @Override
@@ -49,7 +32,16 @@ public class RoboBeeEntity extends RoboEntity {
     }
 
     @Override
+    public boolean canBeCollidedWith() {
+        return false;
+    }
+
+    @Override
     public void push(@NotNull Entity entity) {
+    }
+
+    @Override
+    protected void doPush(@NotNull Entity entity) {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -58,7 +50,11 @@ public class RoboBeeEntity extends RoboEntity {
                 .add(Attributes.MOVEMENT_SPEED, 0.0D);
     }
 
-    @Override
-    protected void doPush(@NotNull Entity entity) {
+    public static RoboBeeEntity createEmpty(EntityType<? extends Mob> type, Level level) {
+        UUID linkedId = null;
+        if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            linkedId = RoboManager.get(serverLevel).newRobo(serverLevel, ItemStack.EMPTY, net.minecraft.core.BlockPos.ZERO, UUID.randomUUID(), 0, null, false);
+        }
+        return new RoboBeeEntity(type, level, linkedId);
     }
 }

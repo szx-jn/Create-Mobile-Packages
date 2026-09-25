@@ -1,12 +1,14 @@
 pluginManagement {
     repositories {
+        maven { url = 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+        maven { url = 'https://maven.aliyun.com/repository/public' }
         gradlePluginPortal()
         maven {
             name = 'MinecraftForge'
-            url = 'https://maven.minecraftforge.net/'
+            url = 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/'
         }
+        maven { url = 'https://maven.aliyun.com/repository/public' }
         maven { url = 'https://maven.parchmentmc.org' }
-        maven { url = "https://maven.firstdark.dev/releases" } // ModPublisher
     }
 }
 

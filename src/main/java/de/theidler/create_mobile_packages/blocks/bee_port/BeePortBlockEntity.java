@@ -14,6 +14,7 @@ import de.theidler.create_mobile_packages.index.config.CMPConfigs;
 import de.theidler.create_mobile_packages.items.robo_bee.RoboBeeItem;
 import de.theidler.create_mobile_packages.network_settings.NetworkHelper;
 import de.theidler.create_mobile_packages.robo.RoboManager;
+import de.theidler.create_mobile_packages.robo.BeePortBlockEntityTarget;
 import de.theidler.create_mobile_packages.robo.VirtualRobo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -190,7 +191,7 @@ public class BeePortBlockEntity extends PackagePortBlockEntity {
 
     private synchronized void requestRoboEntity() {
         if (level instanceof ServerLevel serverLevel) {
-            RoboManager.get(serverLevel).requestRobo(this.getBlockPos(), this.getLogisticsNetworkId());
+            RoboManager.get(serverLevel).requestRobo(new BeePortBlockEntityTarget(this), this.getLogisticsNetworkId(), de.theidler.create_mobile_packages.blocks.bee_port.RoboRequest.Mission.DELIVER);
         }
     }
 
@@ -341,7 +342,7 @@ public class BeePortBlockEntity extends PackagePortBlockEntity {
                 if (!playerUUIDs.contains(player.getUUID())) {
                     continue; // skip players not in the logistics network
                 }
-                if (CMPHelper.doesAddressMatchPlayer(player, address) && CMPHelper.isWithinRange(player.blockPosition(), this.getBlockPos())) {
+                if (CMPHelper.doesAddressMatchPlayer(player, address) && CMPHelper.isWithinRange(this.level, player.blockPosition(), this.getBlockPos())) {
                     sendToPlayer(player, itemStack, slot);
                     return;
                 }
@@ -400,7 +401,7 @@ public class BeePortBlockEntity extends PackagePortBlockEntity {
         }
         roboSendCooldown = 2;
         if (level instanceof ServerLevel serverLevel) {
-            RoboManager.get(serverLevel).newRobo(serverLevel, itemStack, this.getBlockPos(), this.getLogisticsNetworkId(), 0, this.getBlockPos());
+            RoboManager.get(serverLevel).newRobo(serverLevel, itemStack, this.getBlockPos(), this.getLogisticsNetworkId(), 0, this.getBlockPos(), false);
         }
         inventory.setStackInSlot(slot, ItemStack.EMPTY);
     }
