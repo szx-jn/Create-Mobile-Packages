@@ -18,8 +18,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -110,59 +108,35 @@ public class MobilePackager extends Item {
         return null;
     }
 
-    // ── packing — full data including Forge Capabilities ─────────────────
+    // ── packing — full entity data ───────────────────────────────────────
 
     /**
      * Packs any Entity into a spawn-egg item inside a package.
      *
-     * Captures the FULL entity data:
-     *   1. Vanilla NBT via saveWithoutId()
-     *   2. Forge Capabilities via IForgeEntity.serializeNBT() — this is where
-     *      mods like Ice and Fire store dragon size, age, gender, etc.
+     * saveWithoutId() is the complete entity snapshot: vanilla state,
+     * ForgeCaps and persistent ForgeData are all written by the same method.
      */
     public static @NotNull InteractionResult packEntity(@NotNull Player player, @NotNull Entity target) {
         if (target instanceof Player || target instanceof RoboEntity) return InteractionResult.PASS;
         if (target.level().isClientSide) return InteractionResult.SUCCESS;
 
-        // 1. Vanilla NBT (addAdditionalSaveData)
+        // saveWithoutId also writes ForgeCaps and the entity's persistent ForgeData.
         CompoundTag tag = new CompoundTag();
         target.saveWithoutId(tag);
 
-        // 2. Forge Capabilities — the critical part for mod entities
-        //    IForgeEntity exposes serializeNBT() which writes all registered
-        //    capabilities into a CompoundTag. We store this under "ForgeData".
-        try {
-            net.minecraftforge.common.extensions.IForgeEntity forgeEntity =
-                    (net.minecraftforge.common.extensions.IForgeEntity) target;
-            CompoundTag capData = forgeEntity.serializeNBT();
-            if (capData != null && !capData.isEmpty()) {
-                tag.put("ForgeData", capData);
-            }
-        } catch (Exception ignored) {
-            // Some entities may throw — fall back to vanilla-only data
-        }
-
-        // Strip transient / positional / metadata
-        tag.remove("UUID");
+        // Position and motion describe where the entity was packed from, not the
+        // unpack location. Everything else, including entity state such as Fuse,
+        // cat variant, anger and persistent mod data, must survive the trip.
         tag.remove("Pos");
         tag.remove("Motion");
         tag.remove("Dimension");
         tag.remove("PortalCooldown");
-        tag.remove("HurtByTimestamp");
-        tag.remove("Anger");
-        tag.remove("AngerTime");
-        if (tag.contains("Brain")) {
-            CompoundTag brain = tag.getCompound("Brain");
-            if (brain.contains("memories")) {
-                brain.getCompound("memories").remove("minecraft:angry_at");
-            }
-        }
 
         // Ensure correct entity type ID
         tag.putString("id", EntityType.getKey(target.getType()).toString());
 
         ItemStack egg = new ItemStack(CMPItems.PACKED_MOB_SPAWN_EGG.get());
-        egg.getOrCreateTag().put("entity_tag", tag);
+        egg.getOrCreateTag().put(PackedMobSpawnEgg.ENTITY_TAG, tag);
 
         if (!insertIntoExistingPackage(player, egg)) {
             ItemStack box = PackageItem.containing(List.of(egg));
