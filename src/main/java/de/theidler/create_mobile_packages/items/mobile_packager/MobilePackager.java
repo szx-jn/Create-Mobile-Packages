@@ -136,7 +136,7 @@ public class MobilePackager extends Item {
         tag.putString("id", EntityType.getKey(target.getType()).toString());
 
         ItemStack egg = new ItemStack(CMPItems.PACKED_MOB_SPAWN_EGG.get());
-        egg.getOrCreateTag().put(PackedMobSpawnEgg.ENTITY_TAG, tag);
+        egg.getOrCreateTag().put(PackedEntityNbt.ENTITY_TAG, tag);
 
         if (!insertIntoExistingPackage(player, egg)) {
             ItemStack box = PackageItem.containing(List.of(egg));

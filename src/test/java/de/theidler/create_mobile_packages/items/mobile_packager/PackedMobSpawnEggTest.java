@@ -1,10 +1,7 @@
 package de.theidler.create_mobile_packages.items.mobile_packager;
 
-import net.minecraft.SharedConstants;
-import net.minecraft.server.Bootstrap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,12 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PackedMobSpawnEggTest {
 
-    @BeforeAll
-    static void bootstrapMinecraft() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
-
     @Test
     void migratesLegacyEntityTagToVanillaEntityTag() {
         CompoundTag stackTag = new CompoundTag();
@@ -29,10 +20,10 @@ class PackedMobSpawnEggTest {
         legacyTag.putString("variant", "minecraft:black");
         stackTag.put("entity_tag", legacyTag);
 
-        CompoundTag migrated = PackedMobSpawnEgg.getOrMigrateEntityTag(stackTag);
+        CompoundTag migrated = PackedEntityNbt.getOrMigrateEntityTag(stackTag);
 
         assertNotNull(migrated);
-        assertSame(migrated, stackTag.getCompound(PackedMobSpawnEgg.ENTITY_TAG));
+        assertSame(migrated, stackTag.getCompound(PackedEntityNbt.ENTITY_TAG));
         assertFalse(stackTag.contains("entity_tag"));
         assertEquals("minecraft:cat", migrated.getString("id"));
         assertEquals("minecraft:black", migrated.getString("variant"));
@@ -56,7 +47,7 @@ class PackedMobSpawnEggTest {
         legacyTag.put("ForgeData", wrappedSnapshot);
         stackTag.put("entity_tag", legacyTag);
 
-        CompoundTag migrated = PackedMobSpawnEgg.getOrMigrateEntityTag(stackTag);
+        CompoundTag migrated = PackedEntityNbt.getOrMigrateEntityTag(stackTag);
 
         assertNotNull(migrated);
         assertEquals(37, migrated.getShort("Fuse"));
@@ -77,7 +68,7 @@ class PackedMobSpawnEggTest {
         legacyTag.put("ForgeData", wrappedSnapshot);
         stackTag.put("entity_tag", legacyTag);
 
-        CompoundTag migrated = PackedMobSpawnEgg.getOrMigrateEntityTag(stackTag);
+        CompoundTag migrated = PackedEntityNbt.getOrMigrateEntityTag(stackTag);
 
         assertNotNull(migrated);
         assertFalse(migrated.contains("ForgeData"));
