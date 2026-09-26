@@ -124,13 +124,9 @@ public class MobilePackager extends Item {
         CompoundTag tag = new CompoundTag();
         target.saveWithoutId(tag);
 
-        // Position and motion describe where the entity was packed from, not the
-        // unpack location. Everything else, including entity state such as Fuse,
-        // cat variant, anger and persistent mod data, must survive the trip.
-        tag.remove("Pos");
-        tag.remove("Motion");
-        tag.remove("Dimension");
-        tag.remove("PortalCooldown");
+        // Location, motion and combat targets are transient. Entity state such
+        // as Fuse, cat variant and persistent mod data must survive the trip.
+        PackedEntityNbt.sanitizeForPackaging(tag);
 
         // Ensure correct entity type ID
         tag.putString("id", EntityType.getKey(target.getType()).toString());
