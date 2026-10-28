@@ -159,7 +159,7 @@ public class MobilePackager extends Item {
 
     private static boolean isNbtTooLarge(CompoundTag tag) {
         if (tag == null) return false;
-        final int maxBytes = (int) (1.99 * 1024 * 1024);
+        final int maxBytes = 1_990_000; // Decimal MB, conservatively below the 2 MiB vanilla limit.
         try (ByteArrayOutputStream bytes = new ByteArrayOutputStream();
              DataOutputStream output = new DataOutputStream(bytes)) {
             NbtIo.write(tag, output);
