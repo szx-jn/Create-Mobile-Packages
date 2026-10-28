@@ -143,7 +143,7 @@ public class MobilePackager extends Item {
 
         // Keep the complete serialized item NBT below vanilla's network NBT limit.
         if (isNbtTooLarge(egg.getTag())) {
-            CMPPackets.getChannel().sendTo(net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), new ShowOversizedNbtScreenPacket());
+            CMPPackets.getChannel().send(net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), new ShowOversizedNbtScreenPacket());
             return InteractionResult.FAIL;
         }
 
