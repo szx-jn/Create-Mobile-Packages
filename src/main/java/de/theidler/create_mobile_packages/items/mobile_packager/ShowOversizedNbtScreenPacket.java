@@ -19,6 +19,11 @@ public class ShowOversizedNbtScreenPacket extends SimplePacketBase {
     public void write(FriendlyByteBuf buffer) {
     }
 
+    @OnlyIn(Dist.CLIENT)
+    private void handleClient() {
+        Minecraft.getInstance().setScreen(new OversizedNbtScreen());
+    }
+
     @Override
     public boolean handle(NetworkEvent.Context context) {
         context.enqueueWork(this::handleClient);
