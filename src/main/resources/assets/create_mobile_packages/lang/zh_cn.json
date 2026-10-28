@@ -69,5 +69,9 @@
   "config.jade.plugin_create_mobile_packages.bee_port": "运输蜂停泊港信息",
   "create_mobile_packages.network.players": "网络中的玩家：",
   "create_mobile_packages.network.owner": "所有者：%1$s",
-  "item.create_mobile_packages.mobile_packager.too_large": "物品 NBT 过大，无法打包；强行打包可能导致游戏崩溃。"
+  "item.create_mobile_packages.mobile_packager.too_large": "物品 NBT 过大，无法打包；强行打包可能导致游戏崩溃。",
+  "item.create_mobile_packages.mobile_packager.too_large_title": "物品 NBT 过大，无法打包",
+  "item.create_mobile_packages.mobile_packager.too_large_line1": "物品 NBT 数据超过安全限制。",
+  "item.create_mobile_packages.mobile_packager.too_large_line2": "强行打包可能导致游戏崩溃。",
+  "item.create_mobile_packages.mobile_packager.too_large_line3": "本次操作已取消，原实体未被打包。"
 }
