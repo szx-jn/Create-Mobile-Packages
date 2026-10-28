@@ -4,6 +4,7 @@ import com.simibubi.create.foundation.networking.SimplePacketBase;
 import de.theidler.create_mobile_packages.CreateMobilePackages;
 import de.theidler.create_mobile_packages.items.mobile_packager.ConfirmEditMenuPacket;
 import de.theidler.create_mobile_packages.items.mobile_packager.OpenEditMenuPacket;
+import de.theidler.create_mobile_packages.items.mobile_packager.ShowOversizedNbtScreenPacket;
 import de.theidler.create_mobile_packages.items.portable_stock_ticker.*;
 import de.theidler.create_mobile_packages.items.portable_stock_ticker.trash_menu.OpenTrashMenuPacket;
 import de.theidler.create_mobile_packages.items.portable_stock_ticker.trash_menu.SyncTrashAddressPacket;
@@ -47,6 +48,7 @@ public enum CMPPackets {
     SYNC_TRASH_ADDRESS(SyncTrashAddressPacket.class, SyncTrashAddressPacket::new, PLAY_TO_SERVER),
 
     // Server to Client
+    SHOW_OVERSIZED_NBT_SCREEN(ShowOversizedNbtScreenPacket.class, ShowOversizedNbtScreenPacket::new, NetworkDirection.PLAY_TO_CLIENT),
     BIG_ITEM_STACK_LIST(GenericStackListPacket.class, GenericStackListPacket::read, NetworkDirection.PLAY_TO_CLIENT),
     SHOW_TOAST_ON_CLIENT(ShowToastOnClientPacket.class, ShowToastOnClientPacket::read, NetworkDirection.PLAY_TO_CLIENT),
     REMOVE_TOAST_ON_CLIENT(RemoveToastOnClientPacket.class, RemoveToastOnClientPacket::read, NetworkDirection.PLAY_TO_CLIENT),
