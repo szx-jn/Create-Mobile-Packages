@@ -69,5 +69,9 @@
   "config.jade.plugin_create_mobile_packages.bee_port": "Bee Port Info",
   "create_mobile_packages.network.players": "Players in Network:",
   "create_mobile_packages.network.owner": "Owner: %1$s",
-  "item.create_mobile_packages.mobile_packager.too_large": "Entity NBT is too large to package. Forcing it may crash the game."
+  "item.create_mobile_packages.mobile_packager.too_large": "Entity NBT is too large to package. Forcing it may crash the game.",
+  "item.create_mobile_packages.mobile_packager.too_large_title": "Entity NBT Too Large",
+  "item.create_mobile_packages.mobile_packager.too_large_line1": "The entity NBT exceeds the safe size limit.",
+  "item.create_mobile_packages.mobile_packager.too_large_line2": "Forcing packaging may crash the game.",
+  "item.create_mobile_packages.mobile_packager.too_large_line3": "Operation cancelled. The entity was not packaged."
 }
