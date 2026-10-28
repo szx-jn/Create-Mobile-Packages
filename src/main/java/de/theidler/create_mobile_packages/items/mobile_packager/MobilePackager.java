@@ -4,6 +4,8 @@ import com.simibubi.create.content.logistics.box.PackageItem;
 import de.theidler.create_mobile_packages.entities.robo_entity.RoboEntity;
 import de.theidler.create_mobile_packages.index.CMPItems;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -21,6 +23,9 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 public class MobilePackager extends Item {
@@ -134,6 +139,13 @@ public class MobilePackager extends Item {
         ItemStack egg = new ItemStack(CMPItems.PACKED_MOB_SPAWN_EGG.get());
         egg.getOrCreateTag().put(PackedEntityNbt.ENTITY_TAG, tag);
 
+        // Keep the complete serialized item NBT below vanilla's network NBT limit.
+        if (isNbtTooLarge(egg.getTag())) {
+            player.displayClientMessage(Component.translatable(
+                    "item.create_mobile_packages.mobile_packager.too_large"), true);
+            return InteractionResult.FAIL;
+        }
+
         if (!insertIntoExistingPackage(player, egg)) {
             ItemStack box = PackageItem.containing(List.of(egg));
             player.getInventory().placeItemBackInInventory(box);
@@ -143,6 +155,20 @@ public class MobilePackager extends Item {
         player.level().playSound(null, target.blockPosition(), SoundEvents.BARREL_CLOSE, SoundSource.PLAYERS, 1.0F, 0.6F);
         lastPackTime = System.currentTimeMillis();
         return InteractionResult.SUCCESS;
+    }
+
+    private static boolean isNbtTooLarge(CompoundTag tag) {
+        if (tag == null) return false;
+        final int maxBytes = (int) (1.99 * 1024 * 1024);
+        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+             DataOutputStream output = new DataOutputStream(bytes)) {
+            NbtIo.write(tag, output);
+            output.flush();
+            return bytes.size() > maxBytes;
+        } catch (IOException exception) {
+            // If the local size check itself fails, do not risk creating an oversized item.
+            return true;
+        }
     }
 
     private static boolean insertIntoExistingPackage(@NotNull Player player, @NotNull ItemStack egg) {
