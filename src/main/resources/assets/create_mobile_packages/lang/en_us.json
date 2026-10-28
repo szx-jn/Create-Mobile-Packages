@@ -69,4 +69,6 @@
   "config.jade.plugin_create_mobile_packages.bee_port": "Bee Port Info",
   "create_mobile_packages.network.players": "Players in Network:",
   "create_mobile_packages.network.owner": "Owner: %1$s"
+,
+    "item.create_mobile_packages.mobile_packager.too_large": "Item is too large to package"
 }
