@@ -3,6 +3,8 @@ package de.theidler.create_mobile_packages.items.mobile_packager;
 import com.simibubi.create.content.logistics.box.PackageItem;
 import de.theidler.create_mobile_packages.entities.robo_entity.RoboEntity;
 import de.theidler.create_mobile_packages.index.CMPItems;
+import de.theidler.create_mobile_packages.index.CMPPackets;
+import de.theidler.create_mobile_packages.items.mobile_packager.ShowOversizedNbtScreenPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.chat.Component;
@@ -141,8 +143,7 @@ public class MobilePackager extends Item {
 
         // Keep the complete serialized item NBT below vanilla's network NBT limit.
         if (isNbtTooLarge(egg.getTag())) {
-            player.displayClientMessage(Component.translatable(
-                    "item.create_mobile_packages.mobile_packager.too_large"), true);
+            CMPPackets.getChannel().sendTo(net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), new ShowOversizedNbtScreenPacket());
             return InteractionResult.FAIL;
         }
 
