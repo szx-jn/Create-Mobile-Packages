@@ -1,6 +1,7 @@
 package de.theidler.create_mobile_packages.items.mobile_packager;
 
 import com.simibubi.create.content.logistics.box.PackageItem;
+import com.simibubi.create.content.logistics.box.PackageEntity;
 import de.theidler.create_mobile_packages.entities.robo_entity.RoboEntity;
 import de.theidler.create_mobile_packages.index.CMPItems;
 import de.theidler.create_mobile_packages.index.CMPPackets;
@@ -66,7 +67,7 @@ public class MobilePackager extends Item {
                 new net.minecraft.world.phys.AABB(context.getClickedPos()).inflate(2.0));
         for (Entity entity : entities) {
             Entity root = resolveRoot(entity);
-            if (root instanceof Player || root instanceof RoboEntity) continue;
+            if (isForbiddenTarget(root)) continue;
             InteractionResult result = packEntity(player, root);
             if (result.consumesAction()) return result;
         }
@@ -76,7 +77,7 @@ public class MobilePackager extends Item {
         if (hit.getType() == net.minecraft.world.phys.HitResult.Type.ENTITY) {
             Entity hitEntity = ((net.minecraft.world.phys.EntityHitResult) hit).getEntity();
             Entity root = resolveRoot(hitEntity);
-            if (root instanceof Player || root instanceof RoboEntity) return InteractionResult.PASS;
+            if (isForbiddenTarget(root)) return InteractionResult.PASS;
             return packEntity(player, root);
         }
 
@@ -92,8 +93,12 @@ public class MobilePackager extends Item {
             return InteractionResult.sidedSuccess(player.level().isClientSide);
         }
         Entity root = resolveRoot(target);
-        if (root instanceof Player || root instanceof RoboEntity) return InteractionResult.PASS;
+        if (isForbiddenTarget(root)) return InteractionResult.PASS;
         return packEntity(player, root);
+    }
+
+    private static boolean isForbiddenTarget(Entity target) {
+        return target == null || target instanceof Player || target instanceof RoboEntity || target instanceof PackageEntity;
     }
 
     // ── entity resolution ───────────────────────────────────────────────
@@ -130,7 +135,7 @@ public class MobilePackager extends Item {
      * ForgeCaps and persistent ForgeData are all written by the same method.
      */
     public static @NotNull InteractionResult packEntity(@NotNull Player player, @NotNull Entity target) {
-        if (target instanceof Player || target instanceof RoboEntity) return InteractionResult.PASS;
+        if (isForbiddenTarget(target)) return InteractionResult.PASS;
         if (target.level().isClientSide) return InteractionResult.SUCCESS;
 
         // saveWithoutId also writes ForgeCaps and the entity's persistent ForgeData.

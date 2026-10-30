@@ -1,13 +1,10 @@
 package de.theidler.create_mobile_packages.items.mobile_packager;
 
-import com.simibubi.create.content.logistics.box.PackageItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ItemStack;
 
-import java.util.List;
 import java.util.UUID;
 
 public final class PackedPlayerState {
@@ -20,8 +17,6 @@ public final class PackedPlayerState {
     public static boolean isPacked(net.minecraft.world.entity.player.Player player) {
         return player.getPersistentData().getBoolean(PACKED);
     }
-
-    public static ItemStack visualPackage() { return PackageItem.containing(List.of()); }
 
     public static void setPacked(ServerPlayer player, boolean value, boolean byOther) {
         CompoundTag data = player.getPersistentData();

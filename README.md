@@ -34,7 +34,7 @@ You're welcome to contribute to the translations or add your language.
 
 The Mobile Packager can package another player while sneaking and interacting with them. To package yourself, hold the tool, sneak, and left-click a block. A packaged player keeps moving at 90% of their normal walking speed inside a 0.75-block-high collision box. Press `=` five times to escape. A player who escapes after being packaged by someone else gains the **Recently Packed** effect for three minutes; during that time, other players cannot package them. Self-packaging does not grant this effect.
 
-Packaged players are displayed inside Create's native package model. The existing entity packaging and package editing functions are unchanged.
+Packaged players are rendered with Create's native cardboard package model and package renderer; no package entity is spawned to represent them. Create package entities cannot themselves be packaged, preventing nested packages from recursively unpacking into more packages. The existing entity packaging and package editing functions are unchanged.
 
 ### Bee Port
 
