@@ -2,10 +2,12 @@ package de.theidler.create_mobile_packages.items.mobile_packager;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
+import com.simibubi.create.content.logistics.box.PackageItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -20,6 +22,24 @@ public class PackedMobSpawnEgg extends SpawnEggItem {
 
     public PackedMobSpawnEgg(Properties properties) {
         super(EntityType.ENDER_DRAGON, 0x4B7A2B, 0x000000, properties);
+    }
+
+    /**
+     * Recovers Create packages stored inside legacy CMP spawn eggs. Earlier
+     * builds could package Create's own PackageEntity, producing a spawn egg
+     * that summoned another package and could repeat indefinitely.
+     */
+    public static ItemStack recoverLegacyCreatePackage(ItemStack stack) {
+        if (!(stack.getItem() instanceof PackedMobSpawnEgg)) return ItemStack.EMPTY;
+
+        CompoundTag entityTag = PackedEntityNbt.getOrMigrateEntityTag(stack.getTag());
+        if (entityTag == null || !"create:package".equals(entityTag.getString("id"))
+                || !entityTag.contains("Box", Tag.TAG_COMPOUND)) {
+            return ItemStack.EMPTY;
+        }
+
+        ItemStack recovered = ItemStack.of(entityTag.getCompound("Box"));
+        return PackageItem.isPackage(recovered) ? recovered : ItemStack.EMPTY;
     }
 
     // -- type resolution and legacy migration ---------------------------
