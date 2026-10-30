@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(PackageItem.class)
 public abstract class RecoverLegacyCreatePackageMixin {
 
-    @Inject(method = "open", at = @At("HEAD"))
+    @Inject(method = "open", at = @At("HEAD"), remap = false)
     private void cmp$recoverLegacyPackage(Level level, Player player, InteractionHand hand,
             CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir) {
         if (level.isClientSide || !(player instanceof ServerPlayer)) return;
