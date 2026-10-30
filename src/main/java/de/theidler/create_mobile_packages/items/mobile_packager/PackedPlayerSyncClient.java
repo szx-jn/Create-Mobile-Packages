@@ -1,5 +1,6 @@
 package de.theidler.create_mobile_packages.items.mobile_packager;
 
+import de.theidler.create_mobile_packages.PlayerPackClientEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
