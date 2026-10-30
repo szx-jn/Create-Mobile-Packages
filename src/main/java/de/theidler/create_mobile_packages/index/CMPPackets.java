@@ -9,6 +9,9 @@ import de.theidler.create_mobile_packages.network_settings.*;
 import de.theidler.create_mobile_packages.toast.RemoveAllToastsOnClientPacket;
 import de.theidler.create_mobile_packages.toast.RemoveToastOnClientPacket;
 import de.theidler.create_mobile_packages.toast.ShowToastOnClientPacket;
+import de.theidler.create_mobile_packages.items.mobile_packager.PackPlayerPacket;
+import de.theidler.create_mobile_packages.items.mobile_packager.EscapePackedPlayerPacket;
+import de.theidler.create_mobile_packages.items.mobile_packager.PackedPlayerSyncPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -39,6 +42,9 @@ public enum CMPPackets {
     MODIFY_NETWORK_LOCK_STATE(ModifyNetworkLockStatePackage.class, ModifyNetworkLockStatePackage::new, PLAY_TO_SERVER),
     REQUEST_NETWORK_DATA(RequestNetworkDataPacket.class, RequestNetworkDataPacket::new, PLAY_TO_SERVER),
     REQUEST_PLAYER_NETWORKS(RequestPlayerNetworksPacket.class, RequestPlayerNetworksPacket::new, PLAY_TO_SERVER),
+    PACK_PLAYER(PackPlayerPacket.class, PackPlayerPacket::new, PLAY_TO_SERVER),
+    SYNC_PACKED_PLAYER(PackedPlayerSyncPacket.class, PackedPlayerSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT),
+    ESCAPE_PACKED_PLAYER(EscapePackedPlayerPacket.class, EscapePackedPlayerPacket::new, PLAY_TO_SERVER),
 
     // Server to Client
     BIG_ITEM_STACK_LIST(GenericStackListPacket.class, GenericStackListPacket::read, NetworkDirection.PLAY_TO_CLIENT),
@@ -49,7 +55,7 @@ public enum CMPPackets {
     CLEAR_NETWORKS(ClearNetworksPacket.class, ClearNetworksPacket::read, NetworkDirection.PLAY_TO_CLIENT);
 
     public static final ResourceLocation CHANNEL_NAME = CreateMobilePackages.asResource("main");
-    public static final int NETWORK_VERSION = 3;
+    public static final int NETWORK_VERSION = 4;
     public static final String NETWORK_VERSION_STR = String.valueOf(NETWORK_VERSION);
     private static SimpleChannel channel;
 

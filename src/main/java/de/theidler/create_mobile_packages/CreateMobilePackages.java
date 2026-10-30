@@ -9,6 +9,7 @@ import de.theidler.create_mobile_packages.compat.Mods;
 import de.theidler.create_mobile_packages.compat.curios.Curios;
 import de.theidler.create_mobile_packages.index.*;
 import de.theidler.create_mobile_packages.index.config.CMPConfigs;
+import de.theidler.create_mobile_packages.items.mobile_packager.CMPPlayerPack;
 import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -54,6 +55,7 @@ public class CreateMobilePackages
         CMPMenuTypes.register();
         CMPPackets.registerPackets();
         CMPConfigs.register(modLoadingContext);
+        CMPPlayerPack.EFFECTS.register(modEventBus);
         CMPEntities.register();
         CMPDisplaySources.register();
         CMPToasts.registerAll();

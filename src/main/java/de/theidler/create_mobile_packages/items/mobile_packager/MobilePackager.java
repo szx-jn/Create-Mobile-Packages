@@ -2,12 +2,14 @@ package de.theidler.create_mobile_packages.items.mobile_packager;
 
 import com.simibubi.create.content.logistics.box.PackageItem;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.List;
 
@@ -28,5 +30,16 @@ public class MobilePackager extends Item {
             }
         }
         return super.use(pLevel, pPlayer, pUsedHand);
+    }
+
+    @Override
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
+        if (player.isShiftKeyDown() && target instanceof Player other) {
+            if (!player.level().isClientSide) {
+                PackPlayerPacket.pack((net.minecraft.server.level.ServerPlayer) player, other, false);
+            }
+            return InteractionResult.sidedSuccess(player.level().isClientSide);
+        }
+        return super.interactLivingEntity(stack, player, target, hand);
     }
 }
