@@ -19,4 +19,12 @@ public abstract class PlayerDimensionsMixin {
             cir.setReturnValue(EntityDimensions.scalable(current.width, 0.5F));
         }
     }
+
+    @Inject(method = "getStandingEyeHeight", at = @At("RETURN"), cancellable = true)
+    private void cmp$packedEyeHeight(Pose pose, EntityDimensions dimensions, CallbackInfoReturnable<Float> cir) {
+        Player player = (Player) (Object) this;
+        if (PackedPlayerState.isPacked(player)) {
+            cir.setReturnValue(0.4F);
+        }
+    }
 }
