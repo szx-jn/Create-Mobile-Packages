@@ -12,8 +12,15 @@ public final class PackedPlayerSyncClient {
         if (level == null) return;
         var entity = level.getEntity(id);
         if (entity != null) {
+            boolean wasPacked = entity.getPersistentData().getBoolean(PackedPlayerState.PACKED);
             entity.getPersistentData().putBoolean(PackedPlayerState.PACKED, packed);
-            if (entity instanceof net.minecraft.world.entity.player.Player player) player.refreshDimensions();
+            if (entity instanceof net.minecraft.world.entity.player.Player player) {
+                player.refreshDimensions();
+                Minecraft mc = Minecraft.getInstance();
+                if (player == mc.player && wasPacked != packed) {
+                    PlayerPackClientEvents.onLocalPackedStateChanged(packed);
+                }
+            }
         }
     }
 }

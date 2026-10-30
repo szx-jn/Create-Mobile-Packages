@@ -69,6 +69,7 @@
     "effect.create_mobile_packages.recently_packed": "最近被打包过了",
     "create_mobile_packages.player_pack.recently_packed": "对方最近已经被打包过了，再打包就不礼貌了",
     "create_mobile_packages.player_pack.packed": "已将 %1$s 装入 Create 包裹",
+    "create_mobile_packages.player_pack.packed_prompt": "连续按五次'='可以解除被打包状态",
     "create_mobile_packages.player_pack.escape_progress": "挣脱进度：%1$s/%2$s",
     "create_mobile_packages.player_pack.escaped": "你挣脱了包裹！",
   "config.jade.plugin_create_mobile_packages.bee_port": "运输蜂停泊港信息",

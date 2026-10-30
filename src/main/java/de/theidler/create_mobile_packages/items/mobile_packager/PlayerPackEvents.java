@@ -4,6 +4,7 @@ import de.theidler.create_mobile_packages.CreateMobilePackages;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,5 +30,12 @@ public final class PlayerPackEvents {
         if (event.getEntity() instanceof ServerPlayer player && PackedPlayerState.isPacked(player)) {
             PackedPlayerState.setPacked(player, true, player.getPersistentData().getBoolean(PackedPlayerState.PACKED_BY_OTHER));
         }
+    }
+
+    @SubscribeEvent
+    public static void refreshPackedAbsorption(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer player)
+                || !PackedPlayerState.isPacked(player) || player.tickCount % 20 != 0) return;
+        PackedPlayerState.refreshAbsorption(player);
     }
 }

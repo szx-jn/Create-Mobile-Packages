@@ -32,7 +32,7 @@ You're welcome to contribute to the translations or add your language.
 ## Items
 ### Player Packaging
 
-The Mobile Packager can package another player while sneaking and interacting with them. To package yourself, hold the tool, sneak, and left-click a block. A packaged player keeps moving at 90% of their normal walking speed inside a 0.75-block-high collision box. Press `=` five times to escape. A player who escapes after being packaged by someone else gains the **Recently Packed** effect for three minutes; during that time, other players cannot package them. Self-packaging does not grant this effect.
+The Mobile Packager can package another player while sneaking and interacting with them. To package yourself, hold the tool, sneak, and left-click a block. A packaged player immediately switches to third person, keeps moving at 60% of their normal walking speed inside a 0.5-block-high collision box, and receives Absorption II refreshed every second. The white on-screen instruction to press `=` five times remains visible for seven seconds. Press `=` five times to escape; absorption is removed on escape. A player who escapes after being packaged by someone else gains the **Recently Packed** effect for three minutes; during that time, other players cannot package them. Self-packaging does not grant this effect.
 
 Packaged players are rendered with Create's native cardboard package model and package renderer; no package entity is spawned to represent them. Create package entities cannot themselves be packaged, preventing nested packages from recursively unpacking into more packages. The existing entity packaging and package editing functions are unchanged.
 

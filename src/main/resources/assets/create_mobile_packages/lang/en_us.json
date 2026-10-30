@@ -64,6 +64,7 @@
   "effect.create_mobile_packages.recently_packed": "Recently Packed",
   "create_mobile_packages.player_pack.recently_packed": "This player was packed recently. Packing them again would be impolite.",
   "create_mobile_packages.player_pack.packed": "Packed %1$s into a Create Package",
+  "create_mobile_packages.player_pack.packed_prompt": "Press '=' five times to escape the package.",
   "create_mobile_packages.player_pack.escape_progress": "Escape progress: %1$s/%2$s",
   "create_mobile_packages.player_pack.escaped": "You escaped the package!",
   "item.create_mobile_packages.mobile_packager.tooltip.summary": "Package items on the go",

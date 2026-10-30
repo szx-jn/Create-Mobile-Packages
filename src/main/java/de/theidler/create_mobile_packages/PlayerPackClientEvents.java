@@ -6,19 +6,60 @@ import com.simibubi.create.content.logistics.box.PackageRenderer;
 import de.theidler.create_mobile_packages.index.CMPPackets;
 import de.theidler.create_mobile_packages.items.mobile_packager.EscapePackedPlayerPacket;
 import de.theidler.create_mobile_packages.items.mobile_packager.PackedPlayerState;
-import net.minecraft.client.Minecraft;
-import net.createmod.catnip.animation.AnimationTickHolder;
 import net.minecraft.client.CameraType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.createmod.catnip.animation.AnimationTickHolder;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = CreateMobilePackages.MODID, value = Dist.CLIENT)
 public final class PlayerPackClientEvents {
+    private static CameraType cameraBeforePacking;
+    private static long promptExpiresAt;
+
     private PlayerPackClientEvents() {}
+
+    public static void onLocalPackedStateChanged(boolean packed) {
+        Minecraft mc = Minecraft.getInstance();
+        if (packed) {
+            cameraBeforePacking = mc.options.getCameraType();
+            mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+            promptExpiresAt = System.currentTimeMillis() + 7_000L;
+        } else {
+            if (cameraBeforePacking != null) mc.options.setCameraType(cameraBeforePacking);
+            cameraBeforePacking = null;
+            promptExpiresAt = 0L;
+        }
+    }
+
+    @SubscribeEvent
+    public static void keepPackedCameraThirdPerson(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null && PackedPlayerState.isPacked(mc.player)
+                && mc.options.getCameraType() == CameraType.FIRST_PERSON) {
+            mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+        }
+    }
+
+    @SubscribeEvent
+    public static void renderPackedPrompt(RenderGuiOverlayEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (!event.getOverlay().id().equals(VanillaGuiOverlay.HOTBAR.id()) || mc.player == null
+                || !PackedPlayerState.isPacked(mc.player) || System.currentTimeMillis() >= promptExpiresAt) return;
+        int x = mc.getWindow().getGuiScaledWidth() / 2;
+        int y = mc.getWindow().getGuiScaledHeight() / 2 + 18;
+        event.getGuiGraphics().drawCenteredString(mc.font,
+                Component.translatable("create_mobile_packages.player_pack.packed_prompt"), x, y, 0xFFFFFFFF);
+    }
 
     @SubscribeEvent
     public static void onKey(InputEvent.Key event) {

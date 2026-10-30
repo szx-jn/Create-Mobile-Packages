@@ -16,7 +16,7 @@ public abstract class PlayerDimensionsMixin {
         Player player = (Player) (Object) this;
         if (PackedPlayerState.isPacked(player)) {
             EntityDimensions current = cir.getReturnValue();
-            cir.setReturnValue(EntityDimensions.scalable(current.width, 0.75F));
+            cir.setReturnValue(EntityDimensions.scalable(current.width, 0.5F));
         }
     }
 }
