@@ -85,6 +85,12 @@ public class MobilePackager extends Item {
 
     @Override
     public @NotNull InteractionResult interactLivingEntity(@NotNull ItemStack stack, @NotNull Player player, @NotNull net.minecraft.world.entity.LivingEntity target, @NotNull InteractionHand hand) {
+        if (player.isShiftKeyDown() && target instanceof Player other) {
+            if (!player.level().isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                PackPlayerPacket.pack(serverPlayer, other, false);
+            }
+            return InteractionResult.sidedSuccess(player.level().isClientSide);
+        }
         Entity root = resolveRoot(target);
         if (root instanceof Player || root instanceof RoboEntity) return InteractionResult.PASS;
         return packEntity(player, root);

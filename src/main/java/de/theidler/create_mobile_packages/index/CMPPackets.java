@@ -5,6 +5,9 @@ import de.theidler.create_mobile_packages.CreateMobilePackages;
 import de.theidler.create_mobile_packages.items.mobile_packager.ConfirmEditMenuPacket;
 import de.theidler.create_mobile_packages.items.mobile_packager.OpenEditMenuPacket;
 import de.theidler.create_mobile_packages.items.mobile_packager.ShowOversizedNbtScreenPacket;
+import de.theidler.create_mobile_packages.items.mobile_packager.EscapePackedPlayerPacket;
+import de.theidler.create_mobile_packages.items.mobile_packager.PackPlayerPacket;
+import de.theidler.create_mobile_packages.items.mobile_packager.PackedPlayerSyncPacket;
 import de.theidler.create_mobile_packages.items.portable_stock_ticker.*;
 import de.theidler.create_mobile_packages.items.portable_stock_ticker.trash_menu.OpenTrashMenuPacket;
 import de.theidler.create_mobile_packages.items.portable_stock_ticker.trash_menu.SyncTrashAddressPacket;
@@ -46,6 +49,8 @@ public enum CMPPackets {
     REQUEST_PLAYER_NETWORKS(RequestPlayerNetworksPacket.class, RequestPlayerNetworksPacket::new, PLAY_TO_SERVER),
     OPEN_TRASH_MENU(OpenTrashMenuPacket.class, OpenTrashMenuPacket::new, PLAY_TO_SERVER),
     SYNC_TRASH_ADDRESS(SyncTrashAddressPacket.class, SyncTrashAddressPacket::new, PLAY_TO_SERVER),
+    PACK_PLAYER(PackPlayerPacket.class, PackPlayerPacket::new, PLAY_TO_SERVER),
+    ESCAPE_PACKED_PLAYER(EscapePackedPlayerPacket.class, EscapePackedPlayerPacket::new, PLAY_TO_SERVER),
 
     // Server to Client
     SHOW_OVERSIZED_NBT_SCREEN(ShowOversizedNbtScreenPacket.class, ShowOversizedNbtScreenPacket::new, NetworkDirection.PLAY_TO_CLIENT),
@@ -56,10 +61,11 @@ public enum CMPPackets {
     NETWORK_DATA(NetworkDataPacket.class, NetworkDataPacket::read, NetworkDirection.PLAY_TO_CLIENT),
     CLEAR_NETWORKS(ClearNetworksPacket.class, ClearNetworksPacket::read, NetworkDirection.PLAY_TO_CLIENT),
     SYNC_TRASH_ITEMS_TO_CLIENT(SyncTrashItemsToClientPacket.class, SyncTrashItemsToClientPacket::new, NetworkDirection.PLAY_TO_CLIENT),
-    SYNC_TRASH_ADDRESS_TO_CLIENT(SyncTrashAddressToClientPacket.class, SyncTrashAddressToClientPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+    SYNC_TRASH_ADDRESS_TO_CLIENT(SyncTrashAddressToClientPacket.class, SyncTrashAddressToClientPacket::new, NetworkDirection.PLAY_TO_CLIENT),
+    SYNC_PACKED_PLAYER(PackedPlayerSyncPacket.class, PackedPlayerSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
 
     public static final ResourceLocation CHANNEL_NAME = CreateMobilePackages.asResource("main");
-    public static final int NETWORK_VERSION = 4;
+    public static final int NETWORK_VERSION = 5;
     public static final String NETWORK_VERSION_STR = String.valueOf(NETWORK_VERSION);
     private static SimpleChannel channel;
 
