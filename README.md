@@ -79,6 +79,8 @@ Key Features:
 
 The **Mobile Packager** is a handheld device allowing players to create or modify Create mod Packages on the go.
 
+With Mekanism installed, right-clicking a block with the Mobile Packager delegates to Mekanism's Cardboard Box handling. Mekanism's own blacklist configuration, block tags, protection checks, and tile security rules decide whether the block can be packed. Sneak-right-clicking air still opens the package selection and editing interface.
+
 Key Features:
 - **Creating Packages** using the device opens a GUI where up to nine Stacks can be placed along with an address. On submission, a new Package is placed in the player's inventory containing the added items.
 - **Edit Packages** using the device with the Shift key opens a GUI where an existing package can be placed. On submission, the contents of the package are shown and can be modified.

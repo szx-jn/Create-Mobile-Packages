@@ -9,6 +9,7 @@ import de.theidler.create_mobile_packages.items.mobile_packager.ShowOversizedNbt
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -21,9 +22,11 @@ import net.minecraft.world.entity.boss.EnderDragonPart;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
@@ -53,6 +56,16 @@ public class MobilePackager extends Item {
             }
         }
         return super.use(pLevel, pPlayer, pUsedHand);
+    }
+
+    @Override
+    public @NotNull InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
+        Item cardboardBox = ForgeRegistries.ITEMS.getValue(new ResourceLocation("mekanism", "cardboard_box"));
+        if (cardboardBox == null || cardboardBox == Items.AIR) return InteractionResult.PASS;
+
+        // Delegate to Mekanism so its config, block tags, protection, hardness,
+        // tile blacklist, and security checks determine whether the block is packed.
+        return cardboardBox.onItemUseFirst(new ItemStack(cardboardBox), context);
     }
 
     @Override
