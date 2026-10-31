@@ -6,7 +6,8 @@
   "mixins": [
     "LogisticsNetworkMixin",
     "PlayerDimensionsMixin",
-    "RecoverLegacyCreatePackageMixin"
+    "RecoverLegacyCreatePackageMixin",
+    "CardboardBoxDropMixin"
   ],
   "client": [
   ],

@@ -20,6 +20,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.boss.EnderDragonPart;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -37,6 +39,7 @@ import java.util.List;
 public class MobilePackager extends Item {
 
     private static long lastPackTime = 0;
+    public static final String CARDBOARD_BOX_FROM_MOBILE_PACKAGER = "create_mobile_packages:cardboard_box_from_mobile_packager";
 
     public MobilePackager(Properties pProperties) {
         super(pProperties.stacksTo(1));
@@ -65,7 +68,19 @@ public class MobilePackager extends Item {
 
         // Delegate to Mekanism so its config, block tags, protection, hardness,
         // tile blacklist, and security checks determine whether the block is packed.
-        return cardboardBox.onItemUseFirst(new ItemStack(cardboardBox), context);
+        InteractionResult result = cardboardBox.onItemUseFirst(new ItemStack(cardboardBox), context);
+        Level level = context.getLevel();
+        if (result.consumesAction() && !level.isClientSide) {
+            Block cardboardBoxBlock = ForgeRegistries.BLOCKS.getValue(new ResourceLocation("mekanism", "cardboard_box"));
+            if (cardboardBoxBlock != null && level.getBlockState(context.getClickedPos()).is(cardboardBoxBlock)) {
+                BlockEntity cardboardBoxEntity = level.getBlockEntity(context.getClickedPos());
+                if (cardboardBoxEntity != null) {
+                    cardboardBoxEntity.getPersistentData().putBoolean(CARDBOARD_BOX_FROM_MOBILE_PACKAGER, true);
+                    cardboardBoxEntity.setChanged();
+                }
+            }
+        }
+        return result;
     }
 
     @Override
