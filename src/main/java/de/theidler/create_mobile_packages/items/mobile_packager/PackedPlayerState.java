@@ -2,7 +2,6 @@ package de.theidler.create_mobile_packages.items.mobile_packager;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -31,14 +30,8 @@ public final class PackedPlayerState {
             attribute.removeModifier(SPEED_ID);
             if (value) attribute.addTransientModifier(new AttributeModifier(SPEED_ID, "CMP packed player", -0.40D, AttributeModifier.Operation.MULTIPLY_TOTAL));
         }
-        if (value) refreshAbsorption(player);
-        else player.removeEffect(MobEffects.ABSORPTION);
+        if (value) player.removeEffect(MobEffects.ABSORPTION);
         PackPlayerPacket.sync(player);
-    }
-
-    public static void refreshAbsorption(ServerPlayer player) {
-        if (!isPacked(player)) return;
-        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 30, 1, false, false, true));
     }
 
     public static void escape(ServerPlayer player) {
