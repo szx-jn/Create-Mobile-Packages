@@ -92,3 +92,7 @@ Key Features:
 
 ![image](https://github.com/user-attachments/assets/80b6f028-61f9-415a-aa4d-bd911d1d1997)
 ![image](https://github.com/user-attachments/assets/9c9afb41-4671-4092-9a4f-0e23dbf155bb)
+
+### DimensionWorks 纸箱来源标记
+
+打包工具创建的纸箱在方块实体与 Mekanism 的 BlockData 中记录来源，来源随掉落、物品搬运、重新放置和保存加载保留。拆开这类纸箱不会返还空纸箱；Mekanism 自身纸箱保留原行为。旧版本已丢失标记的物品无法自动识别来源，需要用更新后的打包工具重新打包。标记只在打包调用期间设置，退出时通过 finally 清理，不进行区块或实体轮询。

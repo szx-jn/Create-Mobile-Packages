@@ -1,4 +1,11 @@
 ------------------------------------------------------
+Create: Mobile Packages - v0.6.1-dimensionworks.11 - 01.11.2026
+------------------------------------------------------
+
+### Bug Fixes
+- Persist the Mobile Packager origin on both the box block entity and serialized BlockData, including harvested items and re-placement, and suppress its empty-box drop when unpacking.
+
+------------------------------------------------------
 Create: Mobile Packages - v0.6.1 - 1.20.1 - 20.02.2026
 ------------------------------------------------------
 

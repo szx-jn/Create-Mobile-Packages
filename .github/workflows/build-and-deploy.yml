@@ -5,6 +5,7 @@ on:
     branches:
       - codex/dimensionworks-drone-logistics
       - mc1.20.1/main
+      - codex/cardboard-origin-runtime-test
   pull_request:
     branches:
       - '**'

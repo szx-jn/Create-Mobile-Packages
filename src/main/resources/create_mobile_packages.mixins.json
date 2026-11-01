@@ -7,7 +7,9 @@
     "LogisticsNetworkMixin",
     "PlayerDimensionsMixin",
     "RecoverLegacyCreatePackageMixin",
-    "CardboardBoxDropMixin"
+    "CardboardBoxDropMixin",
+    "CardboardBoxMarkerMixin",
+    "CardboardBoxDataMarkerMixin"
   ],
   "client": [
   ],
