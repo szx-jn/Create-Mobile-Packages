@@ -20,4 +20,13 @@ public abstract class PackedPlayerChainRidingMixin {
     private static boolean allowPackedPlayerRide(LocalPlayer player, Predicate<ItemStack> wrenchCheck) {
         return PackedPlayerState.isPacked(player) || player.isHolding(wrenchCheck);
     }
+
+    @Redirect(
+        method = "clientTick",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/player/LocalPlayer;isShiftKeyDown()Z"))
+    private static boolean ignoreSneakToStayOnChain(LocalPlayer player) {
+        return !PackedPlayerState.isPacked(player) && player.isShiftKeyDown();
+    }
 }

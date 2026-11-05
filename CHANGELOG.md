@@ -1,4 +1,11 @@
 ------------------------------------------------------
+Create: Mobile Packages - v0.6.1-dimensionworks.13 - 05.11.2026
+------------------------------------------------------
+
+### Changes
+- Keep packed players attached to Create chains while the sneak key remains held after self-packing.
+
+------------------------------------------------------
 Create: Mobile Packages - v0.6.1-dimensionworks.12 - 05.11.2026
 ------------------------------------------------------
 
