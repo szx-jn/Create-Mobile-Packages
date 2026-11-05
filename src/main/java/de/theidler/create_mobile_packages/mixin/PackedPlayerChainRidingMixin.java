@@ -10,13 +10,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 /** Lets packed players stay on Create chains without requiring a held wrench. */
-@Mixin(value = ChainConveyorRidingHandler.class, remap = false)
+@Mixin(ChainConveyorRidingHandler.class)
 public abstract class PackedPlayerChainRidingMixin {
     @Redirect(
         method = "clientTick",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/player/LocalPlayer;isHolding(Ljava/util/function/Predicate;)Z"))
+            target = "Lnet/minecraft/client/player/LocalPlayer;isHolding(Ljava/util/function/Predicate;)Z",
+            remap = true))
     private static boolean allowPackedPlayerRide(LocalPlayer player, Predicate<ItemStack> wrenchCheck) {
         return PackedPlayerState.isPacked(player) || player.isHolding(wrenchCheck);
     }
@@ -25,7 +26,8 @@ public abstract class PackedPlayerChainRidingMixin {
         method = "clientTick",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/player/LocalPlayer;isShiftKeyDown()Z"))
+            target = "Lnet/minecraft/client/player/LocalPlayer;isShiftKeyDown()Z",
+            remap = true))
     private static boolean ignoreSneakToStayOnChain(LocalPlayer player) {
         return !PackedPlayerState.isPacked(player) && player.isShiftKeyDown();
     }

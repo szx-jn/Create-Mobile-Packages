@@ -1,4 +1,11 @@
 ------------------------------------------------------
+Create: Mobile Packages - v0.6.1-dimensionworks.14 - 05.11.2026
+------------------------------------------------------
+
+### Bug Fixes
+- Generate runtime remapping for the chain rider mixin's Minecraft input checks.
+
+------------------------------------------------------
 Create: Mobile Packages - v0.6.1-dimensionworks.13 - 05.11.2026
 ------------------------------------------------------
 
