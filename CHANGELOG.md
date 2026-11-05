@@ -1,4 +1,13 @@
 ------------------------------------------------------
+Create: Mobile Packages - v0.6.1-dimensionworks.12 - 05.11.2026
+------------------------------------------------------
+
+### Changes
+- Carry packed players with Create's belt passenger controller.
+- Let packed players use chain conveyors without holding a wrench.
+- Document the self-pack controls and DimensionWorks parcel route.
+
+------------------------------------------------------
 Create: Mobile Packages - v0.6.1-dimensionworks.11 - 01.11.2026
 ------------------------------------------------------
 

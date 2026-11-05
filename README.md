@@ -36,6 +36,8 @@ The Mobile Packager can package another player while sneaking and interacting wi
 
 Packaged players are rendered with Create's native cardboard package model and package renderer; no package entity is spawned to represent them. Create package entities cannot themselves be packaged, preventing nested packages from recursively unpacking into more packages. The existing entity packaging and package editing functions are unchanged.
 
+Packed players can ride Create belts and chain conveyors without holding a wrench. The paired DimensionWorks Transfer add-on handles Frogport suction and dispatches packed players through its logistics-dimension terminal. Its first-entry tutorial temporarily disables the packer's escape input until the player reaches their transfer plot.
+
 ### Bee Port
 
 The **Bee Port** is a specialized block that automates the delivery of Create mod Packages to players or other Bee Ports.

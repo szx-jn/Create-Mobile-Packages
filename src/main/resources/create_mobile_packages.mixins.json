@@ -12,6 +12,7 @@
     "CardboardBoxDataMarkerMixin"
   ],
   "client": [
+    "PackedPlayerChainRidingMixin"
   ],
   "minVersion": "0.8"
 }

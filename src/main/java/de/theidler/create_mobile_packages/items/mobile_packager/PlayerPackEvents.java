@@ -7,6 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -36,6 +37,43 @@ public final class PlayerPackEvents {
     public static void reducePackedPlayerDamage(LivingHurtEvent event) {
         if (event.getEntity() instanceof ServerPlayer player && PackedPlayerState.isPacked(player)) {
             event.setAmount(event.getAmount() * 0.7F);
+        }
+    }
+
+    /** Packed players use Create's normal belt passenger transport even though they are players. */
+    @SubscribeEvent
+    public static void carryPackedPlayers(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END
+            || !(event.player instanceof ServerPlayer player)
+            || !player.isAlive()
+            || !PackedPlayerState.isPacked(player)) {
+            return;
+        }
+
+        net.minecraft.core.BlockPos feet = player.blockPosition();
+        net.minecraft.core.BlockPos beltPos = com.simibubi.create.AllBlocks.BELT.has(player.level().getBlockState(feet))
+            ? feet
+            : com.simibubi.create.AllBlocks.BELT.has(player.level().getBlockState(feet.below())) ? feet.below() : null;
+        if (beltPos == null) {
+            return;
+        }
+
+        var state = player.level().getBlockState(beltPos);
+        if (!com.simibubi.create.content.kinetics.belt.BeltBlock.canTransportObjects(state)) {
+            return;
+        }
+        var belt = com.simibubi.create.content.kinetics.belt.BeltHelper.getControllerBE(player.level(), beltPos);
+        if (belt == null || belt.passengers == null) {
+            return;
+        }
+
+        var info = belt.passengers.get(player);
+        if (info == null) {
+            belt.passengers.put(player,
+                new com.simibubi.create.content.kinetics.belt.transport.BeltMovementHandler.TransportedEntityInfo(beltPos, state));
+            player.setOnGround(true);
+        } else if (info.getTicksSinceLastCollision() != 0 || !beltPos.equals(player.blockPosition())) {
+            info.refresh(beltPos, state);
         }
     }
 }
