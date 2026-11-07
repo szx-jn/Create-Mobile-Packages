@@ -1,4 +1,12 @@
 ------------------------------------------------------
+Create: Mobile Packages - v0.6.1-dimensionworks.15 - 08.11.2026
+------------------------------------------------------
+
+### Changes
+- Expand Mekanism cardboard-box packaging to all registered non-air blocks except the barrier and DimensionWorks Transfer dispatch terminal.
+- Preserve separately packed door, bed and tall-plant parts instead of deleting them during packing or unpacking.
+
+------------------------------------------------------
 Create: Mobile Packages - v0.6.1-dimensionworks.14 - 05.11.2026
 ------------------------------------------------------
 

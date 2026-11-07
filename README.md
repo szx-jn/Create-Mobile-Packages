@@ -81,7 +81,7 @@ Key Features:
 
 The **Mobile Packager** is a handheld device allowing players to create or modify Create mod Packages on the go.
 
-With Mekanism installed, right-clicking a block with the Mobile Packager delegates to Mekanism's Cardboard Box handling. Mekanism's own blacklist configuration, block tags, protection checks, and tile security rules decide whether the block can be packed. Unpacking a block packed with the Mobile Packager does not drop an extra cardboard box; boxes packed with Mekanism's own item keep their normal behavior. Sneak-right-clicking air still opens the package selection and editing interface.
+With Mekanism installed, right-clicking a block with the Mobile Packager delegates to Mekanism's Cardboard Box handling. Cardboard-box packaging accepts every registered non-air block except `minecraft:barrier` and `dimensionworks_transfer:dispatch_terminal`; Mekanism's destroy-speed restriction, block and block-entity blacklists, and configured namespace blacklist no longer exclude block types. World interaction and break-event permission checks and Mekanism tile security rules still apply. Unpacking a block packed with the Mobile Packager does not drop an extra cardboard box; boxes packed with Mekanism's own item keep their normal behavior. Sneak-right-clicking air still opens the package selection and editing interface.
 
 Key Features:
 - **Creating Packages** using the device opens a GUI where up to nine Stacks can be placed along with an address. On submission, a new Package is placed in the player's inventory containing the added items.
@@ -98,3 +98,9 @@ Key Features:
 ### DimensionWorks 纸箱来源标记
 
 打包工具创建的纸箱在方块实体与 Mekanism 的 BlockData 中记录来源，来源随掉落、物品搬运、重新放置和保存加载保留。拆开这类纸箱不会返还空纸箱；Mekanism 自身纸箱保留原行为。旧版本已丢失标记的物品无法自动识别来源，需要用更新后的打包工具重新打包。标记只在打包调用期间设置，退出时通过 finally 清理，不进行区块或实体轮询。
+
+### DimensionWorks 全方块打包
+
+Mekanism 纸箱与打包工具共用同一规则：除空气、`minecraft:barrier` 屏障与 `dimensionworks_transfer:dispatch_terminal` 发运终端外，所有已注册方块均允许打包。基岩、命令方块、刷怪笼、流体以及第三方模组的特殊方块和方块实体均不再受硬度、Mekanism 黑名单标签或命名空间配置限制。领地/世界交互、破坏事件和机器安全权限仍正常检查。
+
+每个纸箱只保存点击的一个方块状态及其完整方块实体 NBT，不会自动搜寻或搬运整个多方块结构。门、床和高植物可逐块打包并重新组装；包装和拆包时跳过会删除其他部分的形状更新，拆包的邻居调整不会把存储的方块变成空气，箱子等连接调整继续执行。组装后仍遵守方块自身的运行与支撑规则。逻辑只在交互时执行，不新增实体、区块加载或持续扫描。

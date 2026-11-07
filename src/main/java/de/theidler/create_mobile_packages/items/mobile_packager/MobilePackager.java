@@ -64,8 +64,8 @@ public class MobilePackager extends Item {
         Item cardboardBox = ForgeRegistries.ITEMS.getValue(new ResourceLocation("mekanism", "cardboard_box"));
         if (cardboardBox == null || cardboardBox == Items.AIR) return InteractionResult.PASS;
 
-        // Delegate to Mekanism so its config, block tags, protection, hardness,
-        // tile blacklist, and security checks determine whether the block is packed.
+        // Share the expanded cardboard-box policy while retaining Mekanism's
+        // world protection and tile security checks.
         InteractionResult result = MobilePackagerBlockContext.pack(cardboardBox, context);
         Level level = context.getLevel();
         if (result.consumesAction() && !level.isClientSide) {

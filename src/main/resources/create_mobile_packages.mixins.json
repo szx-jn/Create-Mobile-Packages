@@ -9,7 +9,9 @@
     "RecoverLegacyCreatePackageMixin",
     "CardboardBoxDropMixin",
     "CardboardBoxMarkerMixin",
-    "CardboardBoxDataMarkerMixin"
+    "CardboardBoxDataMarkerMixin",
+    "CardboardBoxPackagingPolicyMixin",
+    "CardboardBoxStateMixin"
   ],
   "client": [
     "PackedPlayerChainRidingMixin"
