@@ -318,4 +318,38 @@ public class CMPGameTests {
         helper.assertTrue(manager.get(id)!=null,"Unloaded home caused an empty bee to be deleted");helper.succeed();
     }
 
+    @GameTest(template = "empty") public static void separatelyPackedDoubleBlocksRetainBothParts(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var player = FakePlayerFactory.getMinecraft(level);
+        var pos = helper.absolutePos(new BlockPos(3, 2, 3));
+        int flags = net.minecraft.world.level.block.Block.UPDATE_ALL | net.minecraft.world.level.block.Block.UPDATE_KNOWN_SHAPE;
+        for (var toolItem : java.util.List.of(mekanism.common.registries.MekanismBlocks.CARDBOARD_BOX.asItem(), CMPItems.MOBILE_PACKAGER.get())) {
+            for (var block : java.util.List.of(Blocks.OAK_DOOR, Blocks.RED_BED, Blocks.SUNFLOWER)) {
+                boolean bed = block == Blocks.RED_BED;
+                var other = bed ? pos.north() : pos.above();
+                var first = bed ? block.defaultBlockState().setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.FOOT)
+                    : block.defaultBlockState().setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.DOUBLE_BLOCK_HALF, net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER);
+                var second = bed ? first.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.HEAD)
+                    : first.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.DOUBLE_BLOCK_HALF, net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER);
+                level.setBlock(pos.below(), Blocks.DIRT.defaultBlockState(), flags);
+                level.setBlock(other.below(), bed ? Blocks.DIRT.defaultBlockState() : first, flags);
+                level.setBlock(pos, first, flags); level.setBlock(other, second, flags);
+                for (var target : java.util.List.of(pos, other)) {
+                    player.setShiftKeyDown(false); var stack = new ItemStack(toolItem);
+                    player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, stack);
+                    var hit = new net.minecraft.world.phys.BlockHitResult(target.getCenter(), net.minecraft.core.Direction.UP, target, false);
+                    helper.assertTrue(stack.getItem().onItemUseFirst(stack, new net.minecraft.world.item.context.UseOnContext(player, net.minecraft.world.InteractionHand.MAIN_HAND, hit)).consumesAction(), "Part failed to pack: " + block);
+                    if (target.equals(pos)) helper.assertTrue(level.getBlockState(other).equals(second), "Packing destroyed the other part: " + block);
+                }
+                for (var target : java.util.List.of(pos, other)) {
+                    player.setShiftKeyDown(true);
+                    var hit = new net.minecraft.world.phys.BlockHitResult(target.getCenter(), net.minecraft.core.Direction.UP, target, false);
+                    helper.assertTrue(level.getBlockState(target).useWithoutItem(level, player, hit).consumesAction(), "Part failed to restore: " + block);
+                }
+                helper.assertTrue(level.getBlockState(pos).equals(first) && level.getBlockState(other).equals(second), "Paired states changed: " + block);
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), flags); level.setBlock(other, Blocks.AIR.defaultBlockState(), flags);
+            }
+        }
+        player.setShiftKeyDown(false); player.getInventory().clearContent(); helper.succeed();
+    }
 }

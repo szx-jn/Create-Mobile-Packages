@@ -358,8 +358,8 @@ tasks.named('runGameTestServer') {
     doFirst { resultLog.delete() }
     doLast {
         def log = resultLog.exists() ? resultLog.getText('UTF-8') : ''
-        if (!log.contains('18 tests are now running') || !log.contains('18 GAME TESTS COMPLETE') || !log.contains('All 18 required tests passed')) {
-            throw new GradleException('Eleven actual CMP checks did not complete')
+        if (!log.contains('19 tests are now running') || !log.contains('19 GAME TESTS COMPLETE') || !log.contains('All 19 required tests passed')) {
+            throw new GradleException('Nineteen actual CMP checks did not complete')
         }
     }
 }

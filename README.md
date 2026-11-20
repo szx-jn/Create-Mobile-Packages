@@ -16,7 +16,7 @@ A Minecraft mod that adds support for delivering Create Mod Packages directly to
 
 Mek 纸箱使用 `mekanism:block_data` 和本模组不可变 `packager_origin` 组件；保存、掉落、重新放置后保留来源标记，工具来源拆箱不重复掉空箱。扩展打包仍执行原生领地/BreakEvent 和机器权限检查，不修改 Mek 第三方源码。无人机保留回收槽位即时保存与一次性取货；修复目标/可见实体漏更新，空载回程等待原港口，不强制加载区块，也不因港口卸载删除蜜蜂。
 
-本地已完成构建、3 项 JUnit、18 项必需 GameTest，以及独立实际客户端的新建平坦世界检查。覆盖实体/载客身份、TNT/落沙状态、NBT 拒绝、命名箱内组件与长整数、纸箱真实掉落和普通纸箱、无人机投递/回程/卸载区块与保存、回收槽位往返和非法数据拒绝。客户端实际通过打包载荷、第三人称包裹/蜜蜂模型加载、五次脱离、回收菜单路线/31 个命名物品同步和超大 NBT 提示。测试类、世界与日志不进入分发 JAR。这些新建夹具不等于已迁移原服务器存档；Sable/Carry On 和整包的全部 JEI/EMI/Ponder 交互还须合包验证。
+本地已完成构建、3 项 JUnit、19 项必需 GameTest，以及独立实际客户端的新建平坦世界检查。覆盖实体/载客身份、TNT/落沙状态、NBT 拒绝、命名箱内组件与长整数、纸箱真实掉落、普通纸箱与门/床/高花分部打包还原、无人机投递/回程/卸载区块与保存、回收槽位往返和非法数据拒绝。客户端实际通过打包载荷、第三人称包裹/蜜蜂模型加载、五次脱离、回收菜单路线/31 个命名物品同步和超大 NBT 提示。测试类、世界与日志不进入分发 JAR。这些新建夹具不等于已迁移原服务器存档；Sable/Carry On 和整包的全部 JEI/EMI/Ponder 交互还须合包验证。
 
 验证命令：`JAVA_HOME=<Java 21> ./gradlew build test runGameTestServer`；客户端按需 `./gradlew -PcmpClientCheck runClient`，限 2 GiB / 2 CPU、30 FPS、小视距。客户端检查只使用 `run-client-check` 独立新世界。没有派发发布工作流；仅 `codex/dimensionworks-neoforge-migration` 开发分支推送不会满足现有工作流的 publish 条件。
 

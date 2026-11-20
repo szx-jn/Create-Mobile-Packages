@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,5 +25,9 @@ public abstract class CardboardBoxPackagingPolicyMixin {
     private boolean cmp$ignoreBlockBlacklist(BlockState state, TagKey<Block> blacklist) { return false; }
     @Redirect(method = "onItemUseFirst", at = @At(value = "INVOKE", target = "Ljava/util/List;contains(Ljava/lang/Object;)Z"), require = 1)
     private boolean cmp$ignoreNamespaceBlacklist(List<?> blacklist, Object namespace) { return false; }
+    @Redirect(method = "onItemUseFirst", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"), require = 1)
+    private boolean cmp$keepOtherPartsWhilePacking(Level level, BlockPos pos, BlockState boxed, int flags) {
+        return level.setBlock(pos, boxed, flags | Block.UPDATE_KNOWN_SHAPE);
+    }
     private static boolean allowed(BlockState state) { return CardboardBoxPackagingPolicy.canPack(BuiltInRegistries.BLOCK.getKey(state.getBlock())); }
 }
