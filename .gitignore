@@ -24,3 +24,7 @@ runs
 run-data
 
 repo
+# Isolated test fixtures
+run-*/
+logs/
+crash-reports/

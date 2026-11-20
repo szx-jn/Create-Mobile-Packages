@@ -88,6 +88,13 @@ config="create_mobile_packages.mixins.json"
 [[dependencies.${mod_id}]]
     modId="create"
     type="required"
-    versionRange="[6.0.7,6.1.0)"
+    versionRange="[6.0.10,6.1.0)"
     ordering="NONE"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="mekanism"
+type="required"
+versionRange="[10.7.19,10.8)"
+ordering="AFTER"
+side="BOTH"

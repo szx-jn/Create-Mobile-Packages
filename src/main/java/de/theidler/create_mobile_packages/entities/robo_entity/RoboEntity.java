@@ -35,12 +35,6 @@ public class RoboEntity extends Mob {
 
     public UUID linkedId;
 
-    /**
-     * Constructor for RoboEntity. Used for spawning the entity.
-     *
-     * @param type  The entity type.
-     * @param level The level in which the entity exists.
-     */
     public RoboEntity(EntityType<? extends Mob> type, Level level, UUID linkedId) {
         super(type, level);
         this.linkedId = linkedId;
@@ -135,15 +129,13 @@ public class RoboEntity extends Mob {
 
     @Override
     public boolean hurt(@NotNull DamageSource pSource, float pAmount) {
-        // if hit by a player, pick it up
         if (pSource.getEntity() instanceof Player player) {
             if (level() instanceof ServerLevel serverLevel) {
                 VirtualRobo virtualRobo = RoboManager.get(serverLevel).get(linkedId);
                 if (virtualRobo != null) {
-                    // check if the player is part of the network
                     IExtendedLogisticsNetwork network = NetworkHelper.getExtendedLogisticsNetwork(virtualRobo.getLogisticsNetworkId());
                     if (network != null && !network.create_mobile_packages$getPlayers().contains(player.getUUID())) {
-                        return false; // player is not allowed to pick up the robo
+                        return false;
                     }
 
                     ItemStack stack = virtualRobo.getItemStack();
@@ -159,7 +151,7 @@ public class RoboEntity extends Mob {
             }
             return true;
         }
-        return false; // RoboEntity cannot be damaged.
+        return false;
     }
 
     @Override

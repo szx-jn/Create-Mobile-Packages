@@ -1,5 +1,7 @@
 package de.theidler.create_mobile_packages.items.portable_stock_ticker;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.simibubi.create.content.logistics.packager.IdentifiedInventory;
 import com.simibubi.create.content.logistics.packagerLink.LogisticallyLinkedBehaviour;
 import com.simibubi.create.content.logistics.packagerLink.LogisticsManager;
@@ -15,7 +17,6 @@ import ru.zznty.create_factory_abstractions.generic.support.GenericInventorySumm
 import ru.zznty.create_factory_abstractions.generic.support.GenericLogisticsManager;
 import ru.zznty.create_factory_abstractions.generic.support.GenericOrder;
 
-import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class StockCheckingItem extends LogisticallyLinkedItem {

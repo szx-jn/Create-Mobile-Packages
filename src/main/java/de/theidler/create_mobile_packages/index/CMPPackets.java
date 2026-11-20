@@ -1,6 +1,7 @@
 package de.theidler.create_mobile_packages.index;
 
 import de.theidler.create_mobile_packages.CreateMobilePackages;
+import de.theidler.create_mobile_packages.items.mobile_packager.*;
 import de.theidler.create_mobile_packages.blocks.bee_port.ToggleBeeReturnModePacket;
 import de.theidler.create_mobile_packages.blocks.bee_port.ToggleFilterModePacket;
 import de.theidler.create_mobile_packages.items.mobile_packager.ConfirmEditMenuPacket;
@@ -42,6 +43,9 @@ public enum CMPPackets implements BasePacketPayload.PacketTypeProvider {
     TOGGLE_BEE_RETURN_MODE(ToggleBeeReturnModePacket.class, ToggleBeeReturnModePacket.STREAM_CODEC),
     TOGGLE_FILTER_MODE(ToggleFilterModePacket.class, ToggleFilterModePacket.STREAM_CODEC),
 
+    PACK_PLAYER(PackPlayerPacket.class, PackPlayerPacket.STREAM_CODEC),
+    ESCAPE_PACKED_PLAYER(EscapePackedPlayerPacket.class, EscapePackedPlayerPacket.STREAM_CODEC),
+
     // Server to Client
     BIG_ITEM_STACK_LIST(GenericStackListPacket.class, GenericStackListPacket.STREAM_CODEC),
     SYNC_TRASH_ADDRESS_TO_CLIENT(SyncTrashAddressToClientPacket.class, SyncTrashAddressToClientPacket.STREAM_CODEC),
@@ -50,7 +54,9 @@ public enum CMPPackets implements BasePacketPayload.PacketTypeProvider {
     REMOVE_TOAST_ON_CLIENT(RemoveToastOnClientPacket.class, RemoveToastOnClientPacket.STREAM_CODEC),
     REMOVE_ALL_TOAST_ON_CLIENT(RemoveAllToastsOnClientPacket.class, RemoveAllToastsOnClientPacket.STREAM_CODEC),
     NETWORK_DATA(NetworkDataPacket.class, NetworkDataPacket.STREAM_CODEC),
-    CLEAR_NETWORKS(ClearNetworksPacket.class, ClearNetworksPacket.STREAM_CODEC);
+    CLEAR_NETWORKS(ClearNetworksPacket.class, ClearNetworksPacket.STREAM_CODEC),
+    SHOW_OVERSIZED_NBT_SCREEN(ShowOversizedNbtScreenPacket.class, ShowOversizedNbtScreenPacket.STREAM_CODEC),
+    SYNC_PACKED_PLAYER(PackedPlayerSyncPacket.class, PackedPlayerSyncPacket.STREAM_CODEC);
 
 
     private final CatnipPacketRegistry.PacketType<?> type;
@@ -70,7 +76,7 @@ public enum CMPPackets implements BasePacketPayload.PacketTypeProvider {
     }
 
     public static void register() {
-        CatnipPacketRegistry packetRegistry = new CatnipPacketRegistry(CreateMobilePackages.MODID, 1);
+        CatnipPacketRegistry packetRegistry = new CatnipPacketRegistry(CreateMobilePackages.MODID, 2);
         for (CMPPackets packet : CMPPackets.values()) {
             packetRegistry.registerPacket(packet.type);
         }

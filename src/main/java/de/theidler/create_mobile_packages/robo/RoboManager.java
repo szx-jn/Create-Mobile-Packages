@@ -1,5 +1,6 @@
 package de.theidler.create_mobile_packages.robo;
 
+import de.theidler.create_mobile_packages.CMPHelper;
 import de.theidler.create_mobile_packages.blocks.bee_port.BeePortBlockEntity;
 import de.theidler.create_mobile_packages.blocks.bee_port.DronePortTracker;
 import de.theidler.create_mobile_packages.blocks.bee_port.RoboRequest;
@@ -36,22 +37,30 @@ public class RoboManager extends SavedData {
     public static RoboManager load(CompoundTag tag, ServerLevel level) {
         RoboManager manager = new RoboManager();
 
-        // Load robos
-        ListTag robosList = tag.getList("robos", Tag.TAG_COMPOUND);
+        ListTag robosList = compoundList(tag, "robos");
         for (int i = 0; i < robosList.size(); i++) {
             CompoundTag roboTag = robosList.getCompound(i);
             VirtualRobo robo = VirtualRobo.deserializeNBT(level, roboTag);
-            manager.robos.put(robo.getId(), robo);
+            if (manager.robos.putIfAbsent(robo.getId(), robo) != null) {
+                throw new IllegalArgumentException("Duplicate saved drone UUID: " + robo.getId());
+            }
         }
 
-        // Load Trash Stores
-        ListTag trashSlotsTag = tag.getList("trashSlots", Tag.TAG_COMPOUND);
+        ListTag trashSlotsTag = compoundList(tag, "trashSlots");
         for (int i = 0; i < trashSlotsTag.size(); i++) {
             CompoundTag trashStoreTag = trashSlotsTag.getCompound(i);
-            RoboTrashStore roboTrashStore = RoboTrashStore.load(trashStoreTag);
+            RoboTrashStore roboTrashStore = RoboTrashStore.load(trashStoreTag, level.registryAccess());
             manager.roboTrashStores.add(roboTrashStore);
         }
         return manager;
+    }
+
+    private static ListTag compoundList(CompoundTag tag, String key) {
+        if (!tag.contains(key, Tag.TAG_LIST) || !(tag.get(key) instanceof ListTag list)
+                || (!list.isEmpty() && list.getElementType() != Tag.TAG_COMPOUND)) {
+            throw new IllegalArgumentException("Invalid saved drone list: " + key);
+        }
+        return list;
     }
 
     @Override
@@ -65,7 +74,7 @@ public class RoboManager extends SavedData {
         // Save Trash Stores
         ListTag trashSlotsTag = new ListTag();
         for (RoboTrashStore roboTrashStore : roboTrashStores) {
-            trashSlotsTag.add(roboTrashStore.save());
+            trashSlotsTag.add(roboTrashStore.save(provider));
         }
         tag.put("trashSlots", trashSlotsTag);
         return tag;
@@ -161,9 +170,10 @@ public class RoboManager extends SavedData {
     }
 
     public void tick(ServerLevel level) {
+        // An unloaded home or recipient does not make the stored bee expendable.
+        // Keep its virtual identity until a valid destination becomes available.
         robos.values().forEach(robo -> robo.tick(level));
         getPendingRoboRequests().forEach(roboRequest -> tryHandlingRequest(roboRequest, level));
-        // prune finished requests older than a minute to avoid unbounded growth
         long now = System.currentTimeMillis();
         beePortRoboRequests.removeIf(r -> (r.getStatus() == RoboRequest.Status.DONE || r.getStatus() == RoboRequest.Status.CANCELLED) && (now - r.getCreatedAt()) > 60_000);
 
@@ -296,7 +306,6 @@ public class RoboManager extends SavedData {
 
     public List<Integer> getETAs(BlockPos pos) {
         List<Integer> eta = new ArrayList<>();
-        // add eta for 2 sources
         getRoboRequests(pos).stream().map(RoboRequest::getEta).forEach(eta::add);
         getInboundRobo(pos).stream().map(robo -> {
             RoboTarget target = robo.getTarget();
@@ -323,4 +332,3 @@ public class RoboManager extends SavedData {
         return target.getTargetPos() != null && BlockPos.containing(target.getTargetPos()).equals(pos);
     }
 }
-

@@ -41,15 +41,26 @@ public class PlayerTarget implements RoboTarget {
     public static @Nullable PlayerTarget fromAddress(ServerLevel level, String address, UUID networkId) {
         IExtendedLogisticsNetwork network = NetworkHelper.getExtendedLogisticsNetwork(networkId);
         if (network == null) return null;
-        ServerPlayer player = level.getPlayers((p) -> doesAddressMatchPlayer(p, address)).stream().filter(p -> NetworkHelper.getPlayerUUIDs(networkId).contains(p.getUUID())).findFirst().orElse(null);
-        if (player == null) return null;
-        return new PlayerTarget(player, networkId);
+        // Preserve in-flight player delivery when its recipient changes dimension.
+        // Network membership is checked for every candidate, including owner membership.
+        var members = NetworkHelper.getPlayerUUIDs(networkId);
+        for (var candidateLevel : level.getServer().getAllLevels()) {
+            var player = candidateLevel.getPlayers(candidate -> doesAddressMatchPlayer(candidate, address)
+                    && members.contains(candidate.getUUID())).stream().findFirst().orElse(null);
+            if (player != null) return new PlayerTarget(player, networkId);
+        }
+        return null;
     }
 
     @Override
     public @Nullable Vec3 getTargetPos() {
         if (player == null) return null;
         return player.position();
+    }
+
+    @Override
+    public @Nullable ServerLevel getTargetLevel() {
+        return player != null && player.level() instanceof ServerLevel serverLevel ? serverLevel : null;
     }
 
     @Override

@@ -1,12 +1,20 @@
 {
   "required": true,
   "package": "de.theidler.create_mobile_packages.mixin",
-  "compatibilityLevel": "JAVA_17",
-  "refmap": "create_mobile_packages.refmap.json",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "LogisticsNetworkMixin"
+    "LogisticsNetworkMixin",
+    "PlayerDimensionsMixin",
+    "RecoverLegacyCreatePackageMixin",
+    "PackedEntityRestoreMixin",
+    "CardboardBoxDropMixin",
+    "CardboardBoxMarkerMixin",
+    "CardboardBoxPackagingPolicyMixin",
+    "CardboardBoxStateMixin"
   ],
   "client": [
+    "PackedPlayerChainRidingMixin"
   ],
+  "injectors": { "defaultRequire": 1 },
   "minVersion": "0.8"
 }

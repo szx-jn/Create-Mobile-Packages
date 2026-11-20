@@ -19,6 +19,9 @@ import java.util.function.UnaryOperator;
 public class CMPDataComponents {
     public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, CreateMobilePackages.MODID);
 
+    public static final DataComponentType<Boolean> PACKAGER_ORIGIN = register(
+            "packager_origin", builder -> builder.persistent(Codec.BOOL).networkSynchronized(net.minecraft.network.codec.ByteBufCodecs.BOOL));
+
     public static final DataComponentType<CustomData> CMP_FREQ = register(
             "cmp_freq",
             builder -> builder.persistent(CustomData.CODEC).networkSynchronized(CustomData.STREAM_CODEC)

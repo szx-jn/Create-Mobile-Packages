@@ -1,6 +1,7 @@
 package de.theidler.create_mobile_packages.entities;
 
 import de.theidler.create_mobile_packages.entities.robo_entity.RoboEntity;
+import de.theidler.create_mobile_packages.robo.RoboManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -20,7 +21,6 @@ public class RoboBeeEntity extends RoboEntity {
         this.setNoAi(true);
     }
 
-    // No AI goals; movement is entirely controlled via tick().
     @Override
     protected void registerGoals() {
     }

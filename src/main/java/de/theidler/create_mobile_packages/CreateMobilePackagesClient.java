@@ -3,7 +3,9 @@ package de.theidler.create_mobile_packages;
 import de.theidler.create_mobile_packages.entities.models.RoboBeeModel;
 import de.theidler.create_mobile_packages.entities.render.DroneEntityRenderer;
 import de.theidler.create_mobile_packages.index.CMPEntities;
+import de.theidler.create_mobile_packages.index.CMPItems;
 import de.theidler.create_mobile_packages.index.ponder.CMPPonderPlugin;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import de.theidler.create_mobile_packages.network_settings.ClientNetworkDataStorage;
 import de.theidler.create_mobile_packages.robo.ClientPlayerNameCache;
 import net.createmod.ponder.foundation.PonderIndex;
@@ -26,6 +28,7 @@ public class CreateMobilePackagesClient {
         modEventBus.addListener(CreateMobilePackagesClient::clientInit);
         modEventBus.addListener(CreateMobilePackagesClient::registerEntityRenderers);
         modEventBus.addListener(CreateMobilePackagesClient::registerLayerDefinitions);
+        modEventBus.addListener(CreateMobilePackagesClient::registerItemColors);
         NeoForge.EVENT_BUS.addListener(CreateMobilePackagesClient::onLevelLeave);
     }
 
@@ -38,6 +41,14 @@ public class CreateMobilePackagesClient {
             ClientNetworkDataStorage.clear();
             ClientPlayerNameCache.clear();
         }
+    }
+
+    public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
+        event.getItemColors().register((stack, tintIndex) -> {
+            if (tintIndex == 0) return 0x4B7A2B; // base color (green)
+            if (tintIndex == 1) return 0x000000; // overlay color (black)
+            return 0xFFFFFF;
+        }, CMPItems.PACKED_MOB_SPAWN_EGG.get());
     }
 
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {

@@ -47,21 +47,12 @@ public class CMPHelper {
 
     /**
      * Finds the closest BeePortBlockEntity to this RoboEntity, optionally filtered by an address.
-     * <p>
-     * This method searches for all available BeePortBlockEntity instances in the current level.
-     * If an address is provided, only ports matching the address filter are considered.
-     * All full ports are removed from the selection.
-     * Finally, the closest port to this RoboEntity's position is determined.
-     *
-     * @param address The address to filter by, or {@code null} for no filtering.
-     * @return The closest BeePortBlockEntity that matches the filter criteria, or {@code null} if none found.
      */
     public static BeePortBlockEntity getClosestBeePort(Level level, String address, BlockPos origin, VirtualRobo entity, UUID logisticsNetworkId) {
         if (level instanceof ServerLevel serverLevel) {
             DronePortTracker tracker = DronePortTracker.get(serverLevel);
             List<BeePortBlockEntity> allBEs = new ArrayList<>(tracker.getAllByNetwork(logisticsNetworkId));
             if (allBEs.isEmpty()) {
-                // if there are no Bee Ports in the network, then allow the bee to fly to any network
                 allBEs.addAll(tracker.getAll());
             }
             allBEs.removeIf(BlockEntity::isRemoved);
@@ -78,16 +69,20 @@ public class CMPHelper {
         return null;
     }
 
+
     /**
      * Calculates the estimated time of arrival (ETA) to the specified targetPosition.
      *
      * @param targetPosition The Vec3 to calculate the ETA for.
+     * @param currentPosition The Vec3 of the current position.
      * @return The ETA in seconds.
      */
     public static int calcETA(Vec3 targetPosition, Vec3 currentPosition) {
         if (targetPosition == null || currentPosition == null) return -1;
         double distance = targetPosition.distanceTo(currentPosition);
-        return (int) (distance / CMPConfigs.server().beeSpeed.get()) + 1;
+        // Use a reasonable speed estimate (player walking speed) for ETA
+        double speedBPS = 4.317; // blocks per second
+        return (int) (distance / speedBPS) + 1;
     }
 
     public static boolean doesAddressMatchPlayer(Player player, String address) {
@@ -101,7 +96,7 @@ public class CMPHelper {
     }
 
     public static @Nullable BeePortBlockEntity getPortAtPos(ServerLevel serverLevel, @Nullable BlockPos pos) {
-        if (pos == null) return null;
+        if (pos == null || !serverLevel.hasChunk(pos.getX() >> 4, pos.getZ() >> 4)) return null;
         BlockEntity be = serverLevel.getBlockEntity(pos);
         if (be instanceof BeePortBlockEntity bpbe) {
             return bpbe;

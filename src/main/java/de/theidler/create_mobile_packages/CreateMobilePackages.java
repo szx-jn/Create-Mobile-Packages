@@ -7,6 +7,7 @@ import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
 import de.theidler.create_mobile_packages.index.*;
 import de.theidler.create_mobile_packages.index.config.CMPConfigs;
+import de.theidler.create_mobile_packages.items.mobile_packager.CMPPlayerPack;
 import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -52,6 +53,7 @@ public class CreateMobilePackages
         CMPPackets.register();
         CMPConfigs.register(modLoadingContext, modContainer);
         CMPEntities.register();
+        de.theidler.create_mobile_packages.items.mobile_packager.CMPPlayerPack.EFFECTS.register(modEventBus);
         CMPDisplaySources.register();
         CMPDataComponents.register(modEventBus);
         CMPToasts.registerAll();

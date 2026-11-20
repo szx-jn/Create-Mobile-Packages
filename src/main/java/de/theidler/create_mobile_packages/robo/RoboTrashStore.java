@@ -21,12 +21,16 @@ public class RoboTrashStore {
         this.itemStacks = itemStacks;
     }
 
-    public static RoboTrashStore load(CompoundTag tag) {
+    public static RoboTrashStore load(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         UUID playerUUID = tag.getUUID("PlayerUUID");
         UUID networkUUID = tag.getUUID("NetworkUUID");
+        if (!tag.contains("ItemStacks", Tag.TAG_LIST) || !(tag.get("ItemStacks") instanceof ListTag list)
+                || (!list.isEmpty() && list.getElementType() != Tag.TAG_COMPOUND)) {
+            throw new IllegalArgumentException("Invalid saved drone trash inventory");
+        }
         ListTag itemsTag = tag.getList("ItemStacks", Tag.TAG_COMPOUND);
         List<ItemStack> itemStacks = new ArrayList<>(itemsTag.stream()
-                .map(itemTag -> ItemStack.CODEC.parse(net.minecraft.nbt.NbtOps.INSTANCE, itemTag).result().orElse(ItemStack.EMPTY))
+                .map(itemTag -> ((CompoundTag) itemTag).isEmpty() ? ItemStack.EMPTY : ItemStack.parse(registries, itemTag).orElseThrow(() -> new IllegalArgumentException("Invalid stored trash item")))
                 .toList());
 
         RoboTrashStore store = new RoboTrashStore(playerUUID, networkUUID, itemStacks);
@@ -63,12 +67,12 @@ public class RoboTrashStore {
         return itemStacks.stream().anyMatch(stack -> !stack.isEmpty());
     }
 
-    public CompoundTag save() {
+    public CompoundTag save(net.minecraft.core.HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         tag.putUUID("PlayerUUID", playerUUID);
         tag.putUUID("NetworkUUID", networkUUID);
         ListTag itemsTag = new ListTag();
-        itemStacks.forEach(itemStack -> itemsTag.add(ItemStack.CODEC.encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, itemStack).result().orElse(new CompoundTag())));
+        itemStacks.forEach(itemStack -> itemsTag.add(itemStack.saveOptional(registries)));
         tag.put("ItemStacks", itemsTag);
         tag.putString("TargetAddress", targetAddress);
         return tag;

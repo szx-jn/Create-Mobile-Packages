@@ -1,5 +1,7 @@
 package de.theidler.create_mobile_packages.items.portable_stock_ticker;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllSoundEvents;
@@ -62,7 +64,6 @@ import ru.zznty.create_factory_abstractions.generic.support.CraftableGenericStac
 import ru.zznty.create_factory_abstractions.generic.support.GenericInventorySummary;
 import ru.zznty.create_factory_abstractions.generic.support.GenericOrder;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class PortableStockTickerScreen extends AbstractSimiContainerScreen<PortableStockTickerMenu>

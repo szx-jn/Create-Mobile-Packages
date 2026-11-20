@@ -21,8 +21,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static de.theidler.create_mobile_packages.CMPHelper.calcETA;
-
 public class RoboBeeBehaviorController {
     private RoboBeeState state = RoboBeeState.IDLE;
     private boolean init = true;
@@ -131,16 +129,17 @@ public class RoboBeeBehaviorController {
         Vec3 end = getAbove(startPort, 2);
 
         double y = robo.getCurrentPos().y;
-        double speed = (robo.getSpeed() / 20.0) / 2; // Takeoff slower
+        double speed = robo.getTravelSpeedPerTick() / 2.0; // Takeoff slower
         if (y < mid.y - speed) {
-            moveAndScale(robo, mid, speed, 0, 1); // 1st part with scaling package
+            moveAndScale(robo, mid, speed, 0, 1);
         } else if (y < end.y - speed) {
-            moveTo(robo, end, speed); // 2nd part without scaling package
+            moveTo(robo, end, speed);
             robo.setPackageHeightScale(1.0f);
         } else {
             robo.setPos(end);
             robo.setTargetVelocity(Vec3.ZERO);
             openPort(startPort, false);
+            robo.startTransport();
             setState(RoboBeeState.NAVIGATE_TO_TARGET);
         }
     }
@@ -151,17 +150,18 @@ public class RoboBeeBehaviorController {
             return;
         }
         if (robo.getTarget() != null) {
-            robo.getTarget().setETA(calcETA(robo.getTargetPosition(), robo.getCurrentPos()));
+            robo.getTarget().setETA(CMPHelper.calcETA(robo.getTargetPosition(), robo.getCurrentPos()));
             if (robo.getTarget() instanceof PlayerTarget playerTarget)
                 playerTarget.updateEtaToast(robo);
         }
         Vec3 target = getAbove(robo.getTargetPosition(), 2);
-        double speed = robo.getSpeed() / 20.0;
+        double speed = robo.getTravelSpeedPerTick();
         moveTo(robo, target, speed);
         if (isAtTarget(robo, target, speed)) {
             if (robo.getTarget() != null) {
-                robo.getTarget().setETA(0); // set ETA to 0 as the bee arrived
+                robo.getTarget().setETA(0);
             }
+            robo.stopTransport();
             setState(RoboBeeState.ALIGN_FOR_DELIVERY);
             robo.setTargetVelocity(Vec3.ZERO);
         }
@@ -197,12 +197,12 @@ public class RoboBeeBehaviorController {
             init = false;
         }
         double y = robo.getCurrentPos().y;
-        double speed = (robo.getSpeed() / 20.0) / 2; // landing slower
+        double speed = robo.getTravelSpeedPerTick() / 2.0; // landing slower
         if (y > mid.y + speed) {
-            moveTo(robo, mid, speed); // 1st part without scaling package
+            moveTo(robo, mid, speed);
             robo.setPackageHeightScale(1.0f);
         } else if (y > end.y + speed) {
-            moveAndScale(robo, end, speed, 1, 0); // 2nd part with scaling package
+            moveAndScale(robo, end, speed, 1, 0);
         } else {
             robo.setPos(end);
             robo.setTargetVelocity(Vec3.ZERO);
@@ -217,8 +217,8 @@ public class RoboBeeBehaviorController {
     }
 
     private void handleDeliverPackage(VirtualRobo robo) {
-        boolean delivered = false;
         BeePortBlockEntity landedPort = lastLandedPort;
+        boolean delivered = false;
         // Try to deliver to player
         if (robo.getTarget() != null && robo.getTarget().asPlayer() != null && !robo.getItemStack().isEmpty()) {
             delivered = BeePortBlockEntity.sendPackageToPlayer(robo.getTarget().asPlayer(), robo.getItemStack());
@@ -239,7 +239,7 @@ public class RoboBeeBehaviorController {
         // updating target Address with update -> creates new target if target was null
         robo.setTargetAddress(PackageItem.getAddress(robo.getItemStack()), true);
 
-        // if the new taget is a Bee Port and the Robo is in it then shutdown the Robo.
+        // if the new target is a Bee Port and the Robo is in it then shutdown the Robo.
         if (robo.getTarget() != null && robo.getTarget().asBeePortBlockEntity() != null) {
             BeePortBlockEntity targetPort = robo.getTarget().asBeePortBlockEntity();
             boolean alreadyLandedAtTarget = landedPort != null && targetPort != null
@@ -312,7 +312,6 @@ public class RoboBeeBehaviorController {
             dir = dir.normalize();
             robo.setTargetVelocity(dir.scale(speed));
         }
-        // look at the target
         robo.setYaw((float) (Math.toDegrees(Math.atan2(-dir.x, dir.z))));
         robo.setPitch((float) (Math.toDegrees(Math.asin(dir.y))));
     }
@@ -334,5 +333,12 @@ public class RoboBeeBehaviorController {
     public void setState(RoboBeeState newState) {
         this.state = newState;
         this.init = true;
+    }
+
+    public boolean isTransporting() {
+        return state == RoboBeeState.TAKEOFF
+                || state == RoboBeeState.NAVIGATE_TO_TARGET
+                || state == RoboBeeState.ALIGN_FOR_DELIVERY
+                || state == RoboBeeState.LAND;
     }
 }

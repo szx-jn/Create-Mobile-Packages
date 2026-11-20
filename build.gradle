@@ -2,7 +2,7 @@ plugins {
     id 'idea'
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.78'
+    id 'net.neoforged.moddev' version '2.0.148'
     id 'com.hypherionmc.modutils.modpublisher' version '2.1.7'
 }
 
@@ -19,7 +19,6 @@ version = mod_version
 group = mod_group_id
 
 repositories {
-    mavenLocal()
 }
 
 ext.buildNumber = System.getenv('BUILD_NUMBER')
@@ -79,12 +78,9 @@ idea {
 
 neoForge {
     // Specify the version of NeoForge to use.
-    version = project.neo_version
+    enable { version = project.neo_version; disableRecompilation = true }
 
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
+
 
 
     // This line is optional. Access Transformers are automatically detected
@@ -136,7 +132,7 @@ neoForge {
             // Recommended logging level for the console
             // You can set various levels here.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            logLevel = org.slf4j.event.Level.DEBUG
+            logLevel = org.slf4j.event.Level.INFO
         }
     }
 
@@ -167,13 +163,12 @@ repositories {
     maven { url = "https://mvn.devos.one/snapshots" } // Registrate
     maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
     maven { url = "https://maven.blamejared.com/" } // JEI
-    maven { url = "https://maven.terraformersmc.com/" } // EMI
+    maven { url = "https://maven.terraformersmc.com/releases/" } // EMI
     maven { url = "https://dl.zznty.ru/maven" } // Create Factory Abstractions, Create Factory Logistics
     maven { url = "https://maven.theillusivec4.top/" } // Curios
     maven { url = "https://api.modrinth.com/maven" }
     maven { url = "https://cursemaven.com" }
     mavenCentral()
-    mavenLocal()
     flatDir {
         dirs "libs"
     }
@@ -201,15 +196,8 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
-    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
-    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
-    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
-    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
-
-    implementation("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
+    compileOnly "maven.modrinth:jei:kmb7KviL"
     compileOnly("dev.emi:emi-neoforge:${emi_version}:api")
-    localRuntime("dev.emi:emi-neoforge:${emi_version}")
     implementation(jarJar("ru.zznty:create_factory_abstractions-${minecraft_version}:${create_factory_abstractions_version}"))
     //runtimeOnly("ru.zznty:create_factory_logistics-${minecraft_version}:${create_factory_abstractions_version}")
     compileOnly("org.jetbrains:annotations:24.0.1")
@@ -217,15 +205,11 @@ dependencies {
     //runtimeOnly("maven.modrinth:g4AWLVIr:QcUiaW4c")
 
     // testing mod compatibilities
-    runtimeOnly("tschipp.carryon:carryon-neoforge-1.21.1:2.2.3.3")
-    compileOnly("top.theillusivec4.curios:curios-neoforge:${curios_version}:api")
-    runtimeOnly("top.theillusivec4.curios:curios-neoforge:${curios_version}")
-    implementation("maven.modrinth:jade:${jade_version}")
-    runtimeOnly("maven.modrinth:sable:g8CObHcP")
+    implementation "maven.modrinth:curios:KJsZIQrT"
+    implementation "maven.modrinth:mekanism:5KzzycBT"
+    compileOnly "maven.modrinth:jade:eYz2YBGT"
 
-    if (!Boolean.getBoolean("idea.sync.active")) {
-        annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
-    }
+
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -348,3 +332,65 @@ publisher {
     }
 }
 
+
+apply from: 'gradle/neoforge-create.gradle'
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
+}
+test { useJUnitPlatform() }
+
+sourceSets.create('gameTest') {
+    compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+    runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+}
+neoForge {
+    mods { "${mod_id}" { sourceSet sourceSets.gameTest } }
+    runs.gameTestServer {
+        sourceSet = sourceSets.gameTest
+        gameDirectory = file('run-gametest')
+        systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+        jvmArguments.addAll('-Xmx2G', '-XX:ActiveProcessorCount=2')
+    }
+}
+tasks.named('runGameTestServer') {
+    def resultLog = file('run-gametest/logs/latest.log')
+    doFirst { resultLog.delete() }
+    doLast {
+        def log = resultLog.exists() ? resultLog.getText('UTF-8') : ''
+        if (!log.contains('18 tests are now running') || !log.contains('18 GAME TESTS COMPLETE') || !log.contains('All 18 required tests passed')) {
+            throw new GradleException('Eleven actual CMP checks did not complete')
+        }
+    }
+}
+
+sourceSets.test {
+    compileClasspath += sourceSets.main.compileClasspath
+    runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.compileClasspath
+}
+
+// Opt-in isolated client/network checks; never packaged into the distributable JAR.
+if (project.hasProperty('cmpClientCheck')) {
+    sourceSets.create('clientCheck') {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+    neoForge {
+        mods { "${mod_id}" { sourceSet sourceSets.clientCheck } }
+        runs.client {
+            sourceSet = sourceSets.clientCheck
+            gameDirectory = project.file('run-client-check')
+            systemProperty 'dimensionworks.verifyCMP', 'true'
+            jvmArguments.addAll('-Xmx2G', '-XX:ActiveProcessorCount=2')
+            programArguments.addAll('--width', '1024', '--height', '600')
+        }
+    }
+    tasks.named('runClient') {
+        doLast {
+            def log = file('run-client-check/logs/latest.log').getText('UTF-8')
+            ['CMP CLIENT PACKED CHECK PASSED:', 'CMP CLIENT TRASH CHECK PASSED:', 'CMP CLIENT CHECK PASSED:'].each { marker ->
+                if (!log.contains(marker)) throw new GradleException('Incomplete isolated client check: ' + marker)
+            }
+        }
+    }
+}

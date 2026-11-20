@@ -10,4 +10,3 @@ public enum RoboBeeState {
     LAND,
     SHUTDOWN
 }
-

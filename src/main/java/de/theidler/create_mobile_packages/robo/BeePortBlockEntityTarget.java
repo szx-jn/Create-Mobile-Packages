@@ -5,8 +5,8 @@ import de.theidler.create_mobile_packages.blocks.bee_port.BeePortBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 
 public class BeePortBlockEntityTarget implements RoboTarget {
     private final BlockPos pos;
@@ -21,6 +21,11 @@ public class BeePortBlockEntityTarget implements RoboTarget {
     @Override
     public Vec3 getTargetPos() {
         return CMPHelper.getGlobalCenter(level, pos);
+    }
+
+    @Override
+    public @Nullable ServerLevel getTargetLevel() {
+        return level;
     }
 
     @Override
