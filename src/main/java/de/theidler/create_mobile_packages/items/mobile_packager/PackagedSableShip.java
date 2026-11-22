@@ -32,7 +32,7 @@ public final class PackagedSableShip {
         boolean changed = false;
         for (int slot = 0; slot < contents.getSlots(); slot++) {
             ItemStack bottle = contents.getStackInSlot(slot);
-            if (bottle.isEmpty() || bottle.getItem() != shipBottle || !isPackagerBottle(bottle)) continue;
+            if (bottle.isEmpty() || bottle.getItem() != shipBottle || !hasShip(bottle)) continue;
 
             ItemStack heldStack = player.getItemInHand(hand);
             player.setItemInHand(hand, bottle.copy());
@@ -59,11 +59,16 @@ public final class PackagedSableShip {
         return changed;
     }
 
-    private static boolean isPackagerBottle(ItemStack stack) {
+    public static boolean isPackagerBottle(ItemStack stack) {
         CustomData data = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
         if (data == null) return false;
         var tag = data.copyTag();
         return tag.getBoolean(MobilePackagerBlockContext.SABLE_SHIP_MARKER)
             && tag.contains("ship", net.minecraft.nbt.Tag.TAG_COMPOUND);
+    }
+
+    private static boolean hasShip(ItemStack stack) {
+        CustomData data = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
+        return data != null && data.copyTag().contains("ship", net.minecraft.nbt.Tag.TAG_COMPOUND);
     }
 }
