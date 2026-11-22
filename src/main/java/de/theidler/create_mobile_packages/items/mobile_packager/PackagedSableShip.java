@@ -34,6 +34,7 @@ public final class PackagedSableShip {
             ItemStack bottle = contents.getStackInSlot(slot);
             if (bottle.isEmpty() || bottle.getItem() != shipBottle || !isPackagerBottle(bottle)) continue;
 
+            ItemStack heldStack = player.getItemInHand(hand);
             player.setItemInHand(hand, bottle.copy());
             boolean wasShiftKeyDown = player.isShiftKeyDown();
             player.setShiftKeyDown(false);
@@ -42,7 +43,7 @@ public final class PackagedSableShip {
                 result = shipBottle.useOn(new UseOnContext(player, hand, hit));
             } finally {
                 player.setShiftKeyDown(wasShiftKeyDown);
-                player.setItemInHand(hand, packageStack);
+                player.setItemInHand(hand, heldStack);
             }
             if (result.consumesAction()) {
                 contents.setStackInSlot(slot, ItemStack.EMPTY);

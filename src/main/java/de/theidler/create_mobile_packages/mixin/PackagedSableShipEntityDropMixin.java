@@ -9,6 +9,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,7 +27,10 @@ public abstract class PackagedSableShipEntityDropMixin {
             WeakReference<Player> owner = entity.tossedBy;
             player = owner.get();
         }
-        if (player == null) return;
+        if (player == null) {
+            player = FakePlayerFactory.getMinecraft(level);
+            player.setPos(entity.position());
+        }
 
         BlockPos pos = entity.blockPosition();
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
