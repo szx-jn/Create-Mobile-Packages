@@ -6,6 +6,8 @@
     "LogisticsNetworkMixin",
     "PlayerDimensionsMixin",
     "RecoverLegacyCreatePackageMixin",
+    "PackagedSableShipReleaseMixin",
+    "PackagedSableShipEntityDropMixin",
     "PackedEntityRestoreMixin",
     "CardboardBoxDropMixin",
     "CardboardBoxMarkerMixin",

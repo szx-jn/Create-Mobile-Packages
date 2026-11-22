@@ -8,6 +8,7 @@ import net.minecraft.world.item.context.UseOnContext;
 /** Marks only BlockData created during the tool's delegated packing operation. */
 public final class MobilePackagerBlockContext {
     public static final String MARKER = "create_mobile_packages:from_mobile_packager";
+    public static final String SABLE_SHIP_MARKER = "create_mobile_packages:mobile_packager_ship";
     private static final ThreadLocal<Boolean> PACKING = new ThreadLocal<>();
 
     private MobilePackagerBlockContext() {}

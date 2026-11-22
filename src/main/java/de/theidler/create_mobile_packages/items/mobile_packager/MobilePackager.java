@@ -114,7 +114,6 @@ public class MobilePackager extends Item {
         if (bottle.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA) == null) {
             return InteractionResult.FAIL;
         }
-
         ItemStack createPackage = PackageItem.containing(List.of(bottle));
         if (isNbtTooLarge((CompoundTag) createPackage.save(player.registryAccess()))) {
             restoreSableBottle(player, hand, packager, bottle, context);
@@ -129,6 +128,11 @@ public class MobilePackager extends Item {
             return InteractionResult.FAIL;
         }
 
+        var bottleData = bottle.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA).copyTag();
+        bottleData.putBoolean(MobilePackagerBlockContext.SABLE_SHIP_MARKER, true);
+        bottle.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+            net.minecraft.world.item.component.CustomData.of(bottleData));
+        createPackage = PackageItem.containing(List.of(bottle));
         player.getInventory().setItem(freeSlot, createPackage);
         player.level().playSound(null, context.getClickedPos(), SoundEvents.BARREL_CLOSE,
             SoundSource.PLAYERS, 1.0F, 0.6F);
@@ -163,17 +167,6 @@ public class MobilePackager extends Item {
         if (player == null) return InteractionResult.PASS;
         Level level = context.getLevel();
 
-        // 1. Scan nearby block area (covers entities on/near the block)
-        List<Entity> entities = level.getEntities(null,
-                new net.minecraft.world.phys.AABB(context.getClickedPos()).inflate(2.0));
-        for (Entity entity : entities) {
-            Entity root = resolveRoot(entity);
-            if (isForbiddenTarget(root)) continue;
-            InteractionResult result = packEntity(player, root);
-            if (result.consumesAction()) return result;
-        }
-
-        // 2. Raycast along player's look direction (covers flying entities, TNT, etc.)
         net.minecraft.world.phys.HitResult hit = player.pick(6.0, 0.0F, false);
         if (hit.getType() == net.minecraft.world.phys.HitResult.Type.ENTITY) {
             Entity hitEntity = ((net.minecraft.world.phys.EntityHitResult) hit).getEntity();
