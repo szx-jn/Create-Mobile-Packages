@@ -28,7 +28,7 @@ public abstract class PackedPlayerChainRidingMixin {
             value = "INVOKE",
             target = "Lnet/minecraft/client/player/LocalPlayer;isShiftKeyDown()Z",
             remap = false))
-    private static boolean ignoreSneakToStayOnChain(LocalPlayer player) {
-        return !PackedPlayerState.isPacked(player) && player.isShiftKeyDown();
+    private static boolean allowPackedPlayerToDismount(LocalPlayer player) {
+        return player.isShiftKeyDown();
     }
 }

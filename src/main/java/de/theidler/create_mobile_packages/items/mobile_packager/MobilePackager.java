@@ -5,6 +5,7 @@ import com.simibubi.create.content.logistics.box.PackageEntity;
 import de.theidler.create_mobile_packages.entities.robo_entity.RoboEntity;
 import de.theidler.create_mobile_packages.index.CMPItems;
 import de.theidler.create_mobile_packages.index.CMPPackets;
+import de.theidler.create_mobile_packages.compat.sable.SableCompat;
 import de.theidler.create_mobile_packages.items.mobile_packager.ShowOversizedNbtScreenPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
@@ -25,6 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -61,6 +63,9 @@ public class MobilePackager extends Item {
 
     @Override
     public @NotNull InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
+        InteractionResult sableResult = packSableShip(stack, context);
+        if (sableResult.consumesAction()) return sableResult;
+
         Item cardboardBox = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("mekanism", "cardboard_box"));
         if (cardboardBox == null || cardboardBox == Items.AIR) return InteractionResult.PASS;
 
@@ -77,6 +82,65 @@ public class MobilePackager extends Item {
             }
         }
         return result;
+    }
+
+    private static InteractionResult packSableShip(ItemStack packager, UseOnContext context) {
+        Level level = context.getLevel();
+        Player player = context.getPlayer();
+        if (level.isClientSide || player == null || player.isShiftKeyDown()
+            || !SableCompat.isInsideSubLevel(level, context.getClickedPos())) {
+            return InteractionResult.PASS;
+        }
+
+        int freeSlot = player.getInventory().getFreeSlot();
+        if (freeSlot < 0) return InteractionResult.FAIL;
+
+        Item bottleItem = BuiltInRegistries.ITEM.get(
+            ResourceLocation.fromNamespaceAndPath("sableinbottle", "ship_in_a_bottle"));
+        if (bottleItem == Items.AIR) return InteractionResult.PASS;
+
+        InteractionHand hand = context.getHand();
+        ItemStack bottle = new ItemStack(bottleItem);
+        player.setItemInHand(hand, bottle);
+        InteractionResult captureResult;
+        try {
+            captureResult = bottleItem.useOn(new UseOnContext(player, hand, recreateHitResult(context)));
+            bottle = player.getItemInHand(hand);
+        } finally {
+            player.setItemInHand(hand, packager);
+        }
+        if (!captureResult.consumesAction()) return captureResult;
+
+        ItemStack createPackage = PackageItem.containing(List.of(bottle));
+        if (isNbtTooLarge((CompoundTag) createPackage.save(player.registryAccess()))) {
+            restoreSableBottle(player, hand, packager, bottle, context);
+            if (!bottle.isEmpty()
+                && bottle.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA) != null) {
+                player.getInventory().setItem(freeSlot, bottle);
+            }
+            return InteractionResult.FAIL;
+        }
+
+        player.getInventory().setItem(freeSlot, createPackage);
+        player.level().playSound(null, context.getClickedPos(), SoundEvents.BARREL_CLOSE,
+            SoundSource.PLAYERS, 1.0F, 0.6F);
+        lastPackTime = System.currentTimeMillis();
+        return InteractionResult.SUCCESS;
+    }
+
+    private static void restoreSableBottle(Player player, InteractionHand hand, ItemStack packager,
+                                           ItemStack bottle, UseOnContext originalContext) {
+        player.setItemInHand(hand, bottle);
+        try {
+            bottle.getItem().useOn(new UseOnContext(player, hand, recreateHitResult(originalContext)));
+        } finally {
+            player.setItemInHand(hand, packager);
+        }
+    }
+
+    private static BlockHitResult recreateHitResult(UseOnContext context) {
+        return new BlockHitResult(context.getClickLocation(), context.getClickedFace(),
+            context.getClickedPos(), context.isInside());
     }
 
     @Override
