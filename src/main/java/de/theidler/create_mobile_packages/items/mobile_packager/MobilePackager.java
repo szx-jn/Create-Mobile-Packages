@@ -9,6 +9,7 @@ import de.theidler.create_mobile_packages.compat.sable.SableCompat;
 import de.theidler.create_mobile_packages.items.mobile_packager.ShowOversizedNbtScreenPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -104,12 +105,15 @@ public class MobilePackager extends Item {
         player.setItemInHand(hand, bottle);
         InteractionResult captureResult;
         try {
-            captureResult = bottleItem.useOn(new UseOnContext(player, hand, recreateHitResult(context)));
+            captureResult = bottleItem.useOn(new UseOnContext(player, hand, recreateHitResult(context, false)));
             bottle = player.getItemInHand(hand);
         } finally {
             player.setItemInHand(hand, packager);
         }
         if (!captureResult.consumesAction()) return captureResult;
+        if (bottle.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA) == null) {
+            return InteractionResult.FAIL;
+        }
 
         ItemStack createPackage = PackageItem.containing(List.of(bottle));
         if (isNbtTooLarge((CompoundTag) createPackage.save(player.registryAccess()))) {
@@ -117,6 +121,10 @@ public class MobilePackager extends Item {
             if (!bottle.isEmpty()
                 && bottle.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA) != null) {
                 player.getInventory().setItem(freeSlot, bottle);
+            }
+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
+                    serverPlayer, new ShowOversizedNbtScreenPacket());
             }
             return InteractionResult.FAIL;
         }
@@ -132,15 +140,20 @@ public class MobilePackager extends Item {
                                            ItemStack bottle, UseOnContext originalContext) {
         player.setItemInHand(hand, bottle);
         try {
-            bottle.getItem().useOn(new UseOnContext(player, hand, recreateHitResult(originalContext)));
+            bottle.getItem().useOn(new UseOnContext(player, hand, recreateHitResult(originalContext, true)));
         } finally {
             player.setItemInHand(hand, packager);
         }
     }
 
-    private static BlockHitResult recreateHitResult(UseOnContext context) {
-        return new BlockHitResult(context.getClickLocation(), context.getClickedFace(),
-            context.getClickedPos(), context.isInside());
+    private static BlockHitResult recreateHitResult(UseOnContext context, boolean projectOutOfSubLevel) {
+        net.minecraft.world.phys.Vec3 location = context.getClickLocation();
+        BlockPos pos = context.getClickedPos();
+        if (projectOutOfSubLevel) {
+            location = SableCompat.projectOutOfSubLevel(context.getLevel(), location);
+            pos = BlockPos.containing(location);
+        }
+        return new BlockHitResult(location, context.getClickedFace(), pos, context.isInside());
     }
 
     @Override
