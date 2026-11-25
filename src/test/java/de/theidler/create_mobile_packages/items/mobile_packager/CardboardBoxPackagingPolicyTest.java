@@ -9,6 +9,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CardboardBoxPackagingPolicyTest {
 
     @Test
+    void nativePackagerDefaultsToPlayerOnlyCapabilities() {
+        MobilePackager packager = new MobilePackager(new net.minecraft.world.item.Item.Properties());
+        assertFalse(packager.canPackEntities());
+        assertFalse(packager.canPackBlocks());
+        assertFalse(packager.canPackSableShips());
+        assertFalse(packager.hasExtendedBlockCompatibility());
+    }
+
+    @Test
     void excludesOnlyBarrierAndTransferDispatchTerminal() {
         assertFalse(CardboardBoxPackagingPolicy.canPack(CardboardBoxPackagingPolicy.BARRIER));
         assertFalse(CardboardBoxPackagingPolicy.canPack(CardboardBoxPackagingPolicy.TRANSFER_DISPATCH_TERMINAL));
