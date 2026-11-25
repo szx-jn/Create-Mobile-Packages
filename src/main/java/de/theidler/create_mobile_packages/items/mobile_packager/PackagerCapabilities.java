@@ -13,10 +13,9 @@ public final class PackagerCapabilities {
     }
 
     public static boolean has(Item item, PackagerCapability capability) {
-        if (!(item instanceof MobilePackager)) return false;
         if (item instanceof PackagerCapabilityProvider provider) {
             return provider.getPackagerCapabilities().contains(capability);
         }
-        return capability == PackagerCapability.PLAYER_PACKING;
+        return item instanceof MobilePackager && capability == PackagerCapability.PLAYER_PACKING;
     }
 }
