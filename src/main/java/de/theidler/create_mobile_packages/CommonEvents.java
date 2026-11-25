@@ -70,7 +70,7 @@ public class CommonEvents {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         if (event.getSide() == LogicalSide.CLIENT) return;
-        if (!isHoldingPackager(event.getEntity())) return;
+        if (!isHoldingPackager(event.getEntity(), event.getHand())) return;
 
         Player player = event.getEntity();
         ServerLevel level = (ServerLevel) player.level();
@@ -129,10 +129,7 @@ public class CommonEvents {
         }
     }
 
-    private static boolean isHoldingPackager(Player player) {
-        ItemStack main = player.getMainHandItem();
-        ItemStack off = player.getOffhandItem();
-        return PackagerCapabilities.has(main, PackagerCapability.ENTITY_PACKING)
-            || PackagerCapabilities.has(off, PackagerCapability.ENTITY_PACKING);
+    private static boolean isHoldingPackager(Player player, net.minecraft.world.InteractionHand hand) {
+        return PackagerCapabilities.has(player.getItemInHand(hand), PackagerCapability.ENTITY_PACKING);
     }
 }
