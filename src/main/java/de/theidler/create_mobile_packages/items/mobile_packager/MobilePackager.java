@@ -69,10 +69,10 @@ public class MobilePackager extends Item {
 
     @Override
     public @NotNull InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
-        if (!hasCapability(PackagerCapability.BLOCK_PACKING)) return InteractionResult.PASS;
         InteractionResult sableResult = hasCapability(PackagerCapability.SABLE_SHIP_PACKING)
             ? packSableShip(stack, context) : InteractionResult.PASS;
         if (sableResult.consumesAction()) return sableResult;
+        if (!hasCapability(PackagerCapability.BLOCK_PACKING)) return InteractionResult.PASS;
 
         Item cardboardBox = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("mekanism", "cardboard_box"));
         if (cardboardBox == null || cardboardBox == Items.AIR) return InteractionResult.PASS;
