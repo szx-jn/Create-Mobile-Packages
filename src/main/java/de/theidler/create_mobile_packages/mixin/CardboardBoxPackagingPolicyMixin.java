@@ -31,7 +31,7 @@ public abstract class CardboardBoxPackagingPolicyMixin {
     }
     @Redirect(method = "onItemUseFirst", at = @At(value = "INVOKE", target = "Ljava/util/List;contains(Ljava/lang/Object;)Z"), require = 1)
     private boolean cmp$ignoreNamespaceBlacklist(List<?> blacklist, Object namespace) {
-        return !MobilePackagerBlockContext.isExtendedCompatibility() && blacklist.contains(namespace);
+        return !MobilePackagerBlockContext.hasModCompatibility() && blacklist.contains(namespace);
     }
     @Redirect(method = "onItemUseFirst", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"), require = 1)
     private boolean cmp$keepOtherPartsWhilePacking(Level level, BlockPos pos, BlockState boxed, int flags) {
