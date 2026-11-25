@@ -46,6 +46,12 @@ public class MobilePackager extends Item {
         super(pProperties.stacksTo(1));
     }
 
+    /** Capability hooks for pack-owned tool tiers; the native item is the player-only tier. */
+    public boolean canPackEntities() { return false; }
+    public boolean canPackBlocks() { return false; }
+    public boolean canPackSableShips() { return false; }
+    public boolean hasExtendedBlockCompatibility() { return false; }
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
         if (!pLevel.isClientSide) {
@@ -64,7 +70,9 @@ public class MobilePackager extends Item {
 
     @Override
     public @NotNull InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
-        InteractionResult sableResult = packSableShip(stack, context);
+        if (!canPackBlocks()) return InteractionResult.PASS;
+        InteractionResult sableResult = canPackSableShips()
+            ? packSableShip(stack, context) : InteractionResult.PASS;
         if (sableResult.consumesAction()) return sableResult;
 
         Item cardboardBox = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("mekanism", "cardboard_box"));
@@ -72,7 +80,7 @@ public class MobilePackager extends Item {
 
         // Share the expanded cardboard-box policy while retaining Mekanism's
         // world protection and tile security checks.
-        InteractionResult result = MobilePackagerBlockContext.pack(cardboardBox, context);
+        InteractionResult result = MobilePackagerBlockContext.pack(cardboardBox, context, hasExtendedBlockCompatibility());
         Level level = context.getLevel();
         if (result.consumesAction() && !level.isClientSide) {
             Block cardboardBoxBlock = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("mekanism", "cardboard_box"));
@@ -162,7 +170,7 @@ public class MobilePackager extends Item {
 
     @Override
     public @NotNull InteractionResult useOn(UseOnContext context) {
-        if (context.getLevel().isClientSide) return InteractionResult.PASS;
+        if (!canPackEntities() || context.getLevel().isClientSide) return InteractionResult.PASS;
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
         Level level = context.getLevel();
@@ -186,6 +194,7 @@ public class MobilePackager extends Item {
             }
             return InteractionResult.sidedSuccess(player.level().isClientSide);
         }
+        if (!canPackEntities()) return InteractionResult.PASS;
         Entity root = resolveRoot(target);
         if (isForbiddenTarget(root)) return InteractionResult.PASS;
         return packEntity(player, root);
