@@ -16,7 +16,6 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 
 
-import de.theidler.create_mobile_packages.index.CMPItems;
 import de.theidler.create_mobile_packages.items.mobile_packager.MobilePackager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -131,6 +130,7 @@ public class CommonEvents {
     private static boolean isHoldingPackager(Player player) {
         ItemStack main = player.getMainHandItem();
         ItemStack off = player.getOffhandItem();
-        return main.is(CMPItems.MOBILE_PACKAGER.get()) || off.is(CMPItems.MOBILE_PACKAGER.get());
+        return main.getItem() instanceof MobilePackager mainPackager && mainPackager.canPackEntities()
+            || off.getItem() instanceof MobilePackager offPackager && offPackager.canPackEntities();
     }
 }
