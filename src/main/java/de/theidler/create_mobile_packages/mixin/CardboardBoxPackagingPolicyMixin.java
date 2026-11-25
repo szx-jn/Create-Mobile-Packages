@@ -22,12 +22,12 @@ public abstract class CardboardBoxPackagingPolicyMixin {
     private boolean cmp$exclude(BlockState state) { return state.isAir() || !allowed(state); }
     @Redirect(method = "onItemUseFirst", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getDestroySpeed(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)F"), require = 1)
     private float cmp$allowHardBlocks(BlockState state, BlockGetter level, BlockPos pos) {
-        return MobilePackagerBlockContext.isExtendedCompatibility()
+        return MobilePackagerBlockContext.canPackSpecialBlocks()
             ? (allowed(state) ? 0F : -1F) : state.getDestroySpeed(level, pos);
     }
     @Redirect(method = "onItemUseFirst", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/tags/TagKey;)Z"), require = 1)
     private boolean cmp$ignoreBlockBlacklist(BlockState state, TagKey<Block> blacklist) {
-        return !MobilePackagerBlockContext.isExtendedCompatibility() && state.is(blacklist);
+        return !MobilePackagerBlockContext.hasModCompatibility() && state.is(blacklist);
     }
     @Redirect(method = "onItemUseFirst", at = @At(value = "INVOKE", target = "Ljava/util/List;contains(Ljava/lang/Object;)Z"), require = 1)
     private boolean cmp$ignoreNamespaceBlacklist(List<?> blacklist, Object namespace) {
