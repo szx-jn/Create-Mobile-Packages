@@ -37,6 +37,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.List;
+import de.theidler.create_mobile_packages.items.mobile_packager.ability.PackagerCapability;
 
 public class MobilePackager extends Item {
 
@@ -46,11 +47,9 @@ public class MobilePackager extends Item {
         super(pProperties.stacksTo(1));
     }
 
-    /** Capability hooks for pack-owned tool tiers; the native item is the player-only tier. */
-    public boolean canPackEntities() { return false; }
-    public boolean canPackBlocks() { return false; }
-    public boolean canPackSableShips() { return false; }
-    public boolean hasExtendedBlockCompatibility() { return false; }
+    public boolean hasCapability(PackagerCapability capability) {
+        return PackagerCapabilities.has(this, capability);
+    }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
@@ -70,8 +69,8 @@ public class MobilePackager extends Item {
 
     @Override
     public @NotNull InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
-        if (!canPackBlocks()) return InteractionResult.PASS;
-        InteractionResult sableResult = canPackSableShips()
+        if (!hasCapability(PackagerCapability.BLOCK_PACKING)) return InteractionResult.PASS;
+        InteractionResult sableResult = hasCapability(PackagerCapability.SABLE_SHIP_PACKING)
             ? packSableShip(stack, context) : InteractionResult.PASS;
         if (sableResult.consumesAction()) return sableResult;
 
@@ -80,7 +79,7 @@ public class MobilePackager extends Item {
 
         // Share the expanded cardboard-box policy while retaining Mekanism's
         // world protection and tile security checks.
-        InteractionResult result = MobilePackagerBlockContext.pack(cardboardBox, context, hasExtendedBlockCompatibility());
+        InteractionResult result = MobilePackagerBlockContext.pack(cardboardBox, context, hasCapability(PackagerCapability.EXTENDED_BLOCK_COMPATIBILITY));
         Level level = context.getLevel();
         if (result.consumesAction() && !level.isClientSide) {
             Block cardboardBoxBlock = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("mekanism", "cardboard_box"));
@@ -170,7 +169,7 @@ public class MobilePackager extends Item {
 
     @Override
     public @NotNull InteractionResult useOn(UseOnContext context) {
-        if (!canPackEntities() || context.getLevel().isClientSide) return InteractionResult.PASS;
+        if (!hasCapability(PackagerCapability.ENTITY_PACKING) || context.getLevel().isClientSide) return InteractionResult.PASS;
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
         Level level = context.getLevel();
@@ -189,12 +188,13 @@ public class MobilePackager extends Item {
     @Override
     public @NotNull InteractionResult interactLivingEntity(@NotNull ItemStack stack, @NotNull Player player, @NotNull net.minecraft.world.entity.LivingEntity target, @NotNull InteractionHand hand) {
         if (player.isShiftKeyDown() && target instanceof Player other) {
+            if (!hasCapability(PackagerCapability.PLAYER_PACKING)) return InteractionResult.PASS;
             if (!player.level().isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
                 PackPlayerPacket.pack(serverPlayer, other, false);
             }
             return InteractionResult.sidedSuccess(player.level().isClientSide);
         }
-        if (!canPackEntities()) return InteractionResult.PASS;
+        if (!hasCapability(PackagerCapability.ENTITY_PACKING)) return InteractionResult.PASS;
         Entity root = resolveRoot(target);
         if (isForbiddenTarget(root)) return InteractionResult.PASS;
         return packEntity(player, root);
