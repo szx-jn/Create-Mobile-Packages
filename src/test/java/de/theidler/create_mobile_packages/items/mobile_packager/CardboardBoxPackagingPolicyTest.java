@@ -16,7 +16,8 @@ class CardboardBoxPackagingPolicyTest {
         assertFalse(packager.hasCapability(PackagerCapability.ENTITY_PACKING));
         assertFalse(packager.hasCapability(PackagerCapability.BLOCK_PACKING));
         assertFalse(packager.hasCapability(PackagerCapability.SABLE_SHIP_PACKING));
-        assertFalse(packager.hasCapability(PackagerCapability.EXTENDED_BLOCK_COMPATIBILITY));
+        assertFalse(packager.hasCapability(PackagerCapability.SPECIAL_BLOCK_PACKING));
+        assertFalse(packager.hasCapability(PackagerCapability.MOD_COMPATIBILITY));
     }
 
     @Test
