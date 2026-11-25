@@ -79,7 +79,8 @@ public class MobilePackager extends Item {
 
         // Share the expanded cardboard-box policy while retaining Mekanism's
         // world protection and tile security checks.
-        InteractionResult result = MobilePackagerBlockContext.pack(cardboardBox, context, hasCapability(PackagerCapability.EXTENDED_BLOCK_COMPATIBILITY));
+        InteractionResult result = MobilePackagerBlockContext.pack(cardboardBox, context,
+            hasCapability(PackagerCapability.SPECIAL_BLOCK_PACKING), hasCapability(PackagerCapability.MOD_COMPATIBILITY));
         Level level = context.getLevel();
         if (result.consumesAction() && !level.isClientSide) {
             Block cardboardBoxBlock = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("mekanism", "cardboard_box"));
