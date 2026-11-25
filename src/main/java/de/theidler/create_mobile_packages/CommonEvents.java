@@ -102,7 +102,7 @@ public class CommonEvents {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
         if (event.getSide() == LogicalSide.CLIENT) return;
-        if (!isHoldingPackager(event.getEntity())) return;
+        if (!isHoldingPackager(event.getEntity(), event.getHand())) return;
 
         Player player = event.getEntity();
         Entity target = event.getTarget();
