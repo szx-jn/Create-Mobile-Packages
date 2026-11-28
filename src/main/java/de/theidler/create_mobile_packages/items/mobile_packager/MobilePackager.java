@@ -81,15 +81,6 @@ public class MobilePackager extends Item {
         // world protection and tile security checks.
         InteractionResult result = MobilePackagerBlockContext.pack(cardboardBox, context,
             hasCapability(PackagerCapability.SPECIAL_BLOCK_PACKING), hasCapability(PackagerCapability.MOD_COMPATIBILITY));
-        Level level = context.getLevel();
-        if (result.consumesAction() && !level.isClientSide) {
-            Block cardboardBoxBlock = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("mekanism", "cardboard_box"));
-            if (cardboardBoxBlock != null && level.getBlockState(context.getClickedPos()).is(cardboardBoxBlock)) {
-                if (level.getBlockEntity(context.getClickedPos()) instanceof MobilePackagerCardboardBox cardboardBoxEntity) {
-                    cardboardBoxEntity.createMobilePackages$setFromMobilePackager(true);
-                }
-            }
-        }
         return result;
     }
 

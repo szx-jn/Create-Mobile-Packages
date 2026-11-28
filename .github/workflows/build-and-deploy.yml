@@ -8,6 +8,13 @@ on:
   pull_request:
     branches:
       - '**'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Publish this revision to CurseForge, Modrinth and GitHub
+        type: boolean
+        required: true
+        default: false
 
 jobs:
   build:
@@ -30,8 +37,8 @@ jobs:
       - name: Clean project
         run: ./gradlew clean
       
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Build and test with Gradle
+        run: ./gradlew build test runGameTestServer
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -43,7 +50,10 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-    if: endsWith(github.ref, '/main') && github.event_name == 'push'
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.release &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/mc1.21.1/main')
     permissions:
       contents: write
       packages: read

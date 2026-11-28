@@ -1,24 +1,12 @@
 package de.theidler.create_mobile_packages.items.mobile_packager;
 
 import net.minecraft.resources.ResourceLocation;
-import de.theidler.create_mobile_packages.items.mobile_packager.ability.PackagerCapability;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CardboardBoxPackagingPolicyTest {
-
-    @Test
-    void nativePackagerDefaultsToPlayerOnlyCapabilities() {
-        MobilePackager packager = new MobilePackager(new net.minecraft.world.item.Item.Properties());
-        assertTrue(packager.hasCapability(PackagerCapability.PLAYER_PACKING));
-        assertFalse(packager.hasCapability(PackagerCapability.ENTITY_PACKING));
-        assertFalse(packager.hasCapability(PackagerCapability.BLOCK_PACKING));
-        assertFalse(packager.hasCapability(PackagerCapability.SABLE_SHIP_PACKING));
-        assertFalse(packager.hasCapability(PackagerCapability.SPECIAL_BLOCK_PACKING));
-        assertFalse(packager.hasCapability(PackagerCapability.MOD_COMPATIBILITY));
-    }
 
     @Test
     void excludesOnlyBarrierAndTransferDispatchTerminal() {

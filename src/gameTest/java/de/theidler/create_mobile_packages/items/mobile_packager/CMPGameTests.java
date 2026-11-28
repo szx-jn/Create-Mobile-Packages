@@ -2,6 +2,7 @@ package de.theidler.create_mobile_packages.items.mobile_packager;
 
 import de.theidler.create_mobile_packages.index.CMPItems;
 import de.theidler.create_mobile_packages.index.CMPDataComponents;
+import de.theidler.create_mobile_packages.items.mobile_packager.ability.PackagerCapability;
 import de.theidler.create_mobile_packages.robo.RoboTrashStore;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -25,6 +26,17 @@ import java.util.UUID;
 @GameTestHolder("create_mobile_packages")
 @PrefixGameTestTemplate(false)
 public class CMPGameTests {
+    @GameTest(template = "empty") public static void nativePackagerDefaultsToPlayerOnlyCapabilities(GameTestHelper helper) {
+        var packager = CMPItems.MOBILE_PACKAGER.get();
+        helper.assertTrue(packager.hasCapability(PackagerCapability.PLAYER_PACKING), "Player packing must remain enabled");
+        helper.assertTrue(!packager.hasCapability(PackagerCapability.ENTITY_PACKING), "Entity packing must remain disabled");
+        helper.assertTrue(!packager.hasCapability(PackagerCapability.BLOCK_PACKING), "Block packing must remain disabled");
+        helper.assertTrue(!packager.hasCapability(PackagerCapability.SABLE_SHIP_PACKING), "Sable ship packing must remain disabled");
+        helper.assertTrue(!packager.hasCapability(PackagerCapability.SPECIAL_BLOCK_PACKING), "Special block packing must remain disabled");
+        helper.assertTrue(!packager.hasCapability(PackagerCapability.MOD_COMPATIBILITY), "Mod compatibility must remain disabled");
+        helper.succeed();
+    }
+
     @GameTest(template = "empty") public static void packedPlayerState(GameTestHelper helper) {
         var player = FakePlayerFactory.getMinecraft(helper.getLevel());
         var base = player.getAttributeValue(Attributes.MOVEMENT_SPEED);
@@ -62,11 +74,11 @@ public class CMPGameTests {
     @GameTest(template = "empty") public static void cardboardOrigin(GameTestHelper helper) {
         var player = FakePlayerFactory.getMinecraft(helper.getLevel());
         var pos = helper.absolutePos(new BlockPos(3,2,3)); helper.getLevel().setBlockAndUpdate(pos, Blocks.BEDROCK.defaultBlockState());
-        var tool = CMPItems.MOBILE_PACKAGER.get().getDefaultInstance();
-        player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, tool);player.setShiftKeyDown(false);
+        var cardboardBox = mekanism.common.registries.MekanismBlocks.CARDBOARD_BOX.asItem();
+        player.setShiftKeyDown(false);
         var context = new net.minecraft.world.item.context.UseOnContext(player, net.minecraft.world.InteractionHand.MAIN_HAND,
             new net.minecraft.world.phys.BlockHitResult(pos.getCenter(), net.minecraft.core.Direction.UP, pos, false));
-        helper.assertTrue(tool.getItem().onItemUseFirst(tool, context).consumesAction(), "Expanded bedrock policy failed");
+        helper.assertTrue(MobilePackagerBlockContext.pack(cardboardBox, context, true, true).consumesAction(), "Expanded bedrock policy failed");
         var tile = helper.getLevel().getBlockEntity(pos);
         helper.assertTrue(tile instanceof MobilePackagerCardboardBox marker && marker.createMobilePackages$isFromMobilePackager(), "Native origin missing");
         var loaded = net.minecraft.world.level.block.entity.BlockEntity.loadStatic(pos, tile.getBlockState(), tile.saveWithFullMetadata(helper.getLevel().registryAccess()), helper.getLevel().registryAccess());
@@ -146,13 +158,13 @@ public class CMPGameTests {
     @GameTest(template = "empty") public static void protectedBlock(GameTestHelper helper) {
         var player=FakePlayerFactory.getMinecraft(helper.getLevel());player.setShiftKeyDown(false);
         var pos=helper.absolutePos(new BlockPos(3,2,3));helper.getLevel().setBlockAndUpdate(pos, Blocks.STONE.defaultBlockState());
-        var tool=CMPItems.MOBILE_PACKAGER.get().getDefaultInstance();player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, tool);
+        var cardboardBox=mekanism.common.registries.MekanismBlocks.CARDBOARD_BOX.asItem();
         java.util.function.Consumer<net.neoforged.neoforge.event.level.BlockEvent.BreakEvent> denial=event->{if(event.getPos().equals(pos))event.setCanceled(true);};
         var bus=net.neoforged.neoforge.common.NeoForge.EVENT_BUS;bus.addListener(denial);
         try {
             var context=new net.minecraft.world.item.context.UseOnContext(player, net.minecraft.world.InteractionHand.MAIN_HAND,
                 new net.minecraft.world.phys.BlockHitResult(pos.getCenter(),net.minecraft.core.Direction.UP,pos,false));
-            helper.assertTrue(tool.getItem().onItemUseFirst(tool,context)==net.minecraft.world.InteractionResult.FAIL, "Packing bypassed native protection");
+            helper.assertTrue(MobilePackagerBlockContext.pack(cardboardBox, context, false, false)==net.minecraft.world.InteractionResult.FAIL, "Packing bypassed native protection");
             helper.assertTrue(helper.getLevel().getBlockState(pos).is(Blocks.STONE) && !MobilePackagerBlockContext.isPacking(), "Protected block or context changed");
         } finally {bus.unregister(denial);}
         helper.succeed();
@@ -166,10 +178,10 @@ public class CMPGameTests {
         var namedChest = new ItemStack(Items.CHEST); namedChest.set(DataComponents.CUSTOM_NAME, Component.literal("original chest"));
         chest.applyComponentsFromItemStack(namedChest); chest.setItem(13,content);
         var expectedContent = content.copy();
-        var tool=CMPItems.MOBILE_PACKAGER.get().getDefaultInstance();player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,tool);
+        var cardboardBox=mekanism.common.registries.MekanismBlocks.CARDBOARD_BOX.asItem();
         var hit=new net.minecraft.world.phys.BlockHitResult(pos.getCenter(),net.minecraft.core.Direction.UP,pos,false);
         var context=new net.minecraft.world.item.context.UseOnContext(player,net.minecraft.world.InteractionHand.MAIN_HAND,hit);
-        helper.assertTrue(tool.getItem().onItemUseFirst(tool,context).consumesAction(), "Chest packing failed");
+        helper.assertTrue(MobilePackagerBlockContext.pack(cardboardBox, context, false, false).consumesAction(), "Chest packing failed");
         var tile=helper.getLevel().getBlockEntity(pos);var serialized=tile.saveWithFullMetadata(helper.getLevel().registryAccess());
         var reloaded=net.minecraft.world.level.block.entity.BlockEntity.loadStatic(pos,tile.getBlockState(),serialized,helper.getLevel().registryAccess());
         helper.getLevel().setBlockEntity(reloaded);player.setShiftKeyDown(true);
@@ -323,8 +335,8 @@ public class CMPGameTests {
         var player = FakePlayerFactory.getMinecraft(level);
         var pos = helper.absolutePos(new BlockPos(3, 2, 3));
         int flags = net.minecraft.world.level.block.Block.UPDATE_ALL | net.minecraft.world.level.block.Block.UPDATE_KNOWN_SHAPE;
-        for (var toolItem : java.util.List.of(mekanism.common.registries.MekanismBlocks.CARDBOARD_BOX.asItem(), CMPItems.MOBILE_PACKAGER.get())) {
-            for (var block : java.util.List.of(Blocks.OAK_DOOR, Blocks.RED_BED, Blocks.SUNFLOWER)) {
+        var cardboardBox = mekanism.common.registries.MekanismBlocks.CARDBOARD_BOX.asItem();
+        for (var block : java.util.List.of(Blocks.OAK_DOOR, Blocks.RED_BED, Blocks.SUNFLOWER)) {
                 boolean bed = block == Blocks.RED_BED;
                 var other = bed ? pos.north() : pos.above();
                 var first = bed ? block.defaultBlockState().setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.FOOT)
@@ -335,10 +347,12 @@ public class CMPGameTests {
                 level.setBlock(other.below(), bed ? Blocks.DIRT.defaultBlockState() : first, flags);
                 level.setBlock(pos, first, flags); level.setBlock(other, second, flags);
                 for (var target : java.util.List.of(pos, other)) {
-                    player.setShiftKeyDown(false); var stack = new ItemStack(toolItem);
+                    player.setShiftKeyDown(false); var stack = new ItemStack(cardboardBox);
                     player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, stack);
                     var hit = new net.minecraft.world.phys.BlockHitResult(target.getCenter(), net.minecraft.core.Direction.UP, target, false);
-                    helper.assertTrue(stack.getItem().onItemUseFirst(stack, new net.minecraft.world.item.context.UseOnContext(player, net.minecraft.world.InteractionHand.MAIN_HAND, hit)).consumesAction(), "Part failed to pack: " + block);
+                    var context = new net.minecraft.world.item.context.UseOnContext(player, net.minecraft.world.InteractionHand.MAIN_HAND, hit);
+                    helper.assertTrue(MobilePackagerBlockContext.pack(cardboardBox, context, true, true).consumesAction(),
+                            "Part failed to pack: " + block + ", target=" + target);
                     if (target.equals(pos)) helper.assertTrue(level.getBlockState(other).equals(second), "Packing destroyed the other part: " + block);
                 }
                 for (var target : java.util.List.of(pos, other)) {
@@ -348,7 +362,6 @@ public class CMPGameTests {
                 }
                 helper.assertTrue(level.getBlockState(pos).equals(first) && level.getBlockState(other).equals(second), "Paired states changed: " + block);
                 level.setBlock(pos, Blocks.AIR.defaultBlockState(), flags); level.setBlock(other, Blocks.AIR.defaultBlockState(), flags);
-            }
         }
         player.setShiftKeyDown(false); player.getInventory().clearContent(); helper.succeed();
     }
